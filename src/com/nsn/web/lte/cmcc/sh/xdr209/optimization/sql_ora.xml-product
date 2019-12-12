@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<sqlRoot id="">
+
+	<sql id="QUERY_RECORD_PAGE" type="ftl">
+		<![CDATA[
+			SELECT 
+			t.*,
+			to_char(t.start_time,'MM.DD HH24:MI:SS') START_TIME_STR,
+			to_char(t.end_time,'MM.DD HH24:MI:SS') END_TIME_STR,
+			to_char(t.check_start,'MM.DD HH24:MI:SS') CHECK_START_STR,
+			to_char(t.check_end,'MM.DD HH24:MI:SS')  CHECK_END_STR
+			FROM  RPT_COMPLAINT_IMSI_LIST t  where 1=1
+			${seq}
+			${queryId}
+			order by check_start desc,rowid
+		]]>
+	</sql>
+	
+	<sql id="QUERY_ORDERNO_PAGE" type="ftl">
+		<![CDATA[
+			SELECT 
+			t.*,
+			to_char(t.start_time,'MM.DD HH24:MI:SS') START_TIME_STR,
+			to_char(t.end_time,'MM.DD HH24:MI:SS') END_TIME_STR,
+			to_char(t.check_start,'MM.DD HH24:MI:SS') CHECK_START_STR,
+			to_char(t.check_end,'MM.DD HH24:MI:SS')  CHECK_END_STR
+			FROM RPT_COMPLAINT_IMSI_LIST t where
+			USER_ID not in (999999999999,1106)
+			${user}
+			${status}
+			${imsiMsisdn}
+			${checkStart}
+			${checkEnd}
+			${startTime}
+			${endTime}
+			order by check_start desc,rowid
+		]]>
+	</sql>
+	
+	<sql id="ORDER_USER_GROUPED" type="ftl">
+		<![CDATA[
+			SELECT USER_ID, USER_NAME FROM RPT_COMPLAINT_IMSI_LIST WHERE USER_ID IS NOT NULL 
+			and USER_ID not in (999999999999,1106) AND USER_NAME IS NOT NULL GROUP BY USER_ID,USER_NAME
+		]]>
+	</sql>
+	
+	<!-- 只更新状态为 正在排队等待 正在数据生成 正在投诉分析 这些僵尸工单 -->
+	<sql id="TASK_CHECK_ORDER" type="ftl">
+		<![CDATA[
+			SELECT * FROM RPT_COMPLAINT_IMSI_LIST WHERE STATUS IN (1,2,4)
+		]]>
+	</sql>
+
+	<!-- 最近30天的投诉量 -->
+	<sql id="NEAR30_COMPLAINT_NUMS" type="ftl">
+		select a.*,b.dcount lmonth,c.dcount tmonth from
+		(
+			select sdate,count(1) dcount from
+			(
+			select 
+			to_char(start_time,'yyyy-mm-dd') sdate
+			from RPT_COMPLAINT_IMSI_LIST 
+			where start_time between sysdate - 30 and sysdate
+			and USER_ID not in (999999999999,1106)
+			${user}
+			${status}
+			${imsiMsisdn}
+			${checkStart}
+			${checkEnd}
+			${startTime}
+			${endTime}
+			) group by sdate order by sdate
+		) a,
+		--上月均线
+		(
+			select avg(count(1)) dcount FROM(
+			 select to_char(start_time,'yyyy-mm-dd') sdate from RPT_COMPLAINT_IMSI_LIST 
+			 where to_char(start_time,'yyyy-mm') = to_char(add_months(trunc(sysdate),-1),'yyyy-mm')
+			 and USER_ID not in (999999999999,1106)
+			 ${user}
+			${status}
+			) group by sdate
+		) b,
+		(
+			select avg(count(1)) dcount FROM(
+			 select to_char(start_time,'yyyy-mm-dd') sdate from RPT_COMPLAINT_IMSI_LIST
+			 where to_char(start_time,'yyyy-mm') = to_char(add_months(trunc(sysdate),0),'yyyy-mm')
+			 and USER_ID not in (999999999999,1106)
+			 ${user}
+			${status}
+			) group by sdate
+		) c
+	</sql>
+	
+	<sql id="COMPAINT_IMSI_LIST_QUERYED" type="ftl">
+		<![CDATA[
+			select * from RPT_COMPLAINT_IMSI_LIST 
+			where 
+			(imsi = '${imsi}'  or  msisdn = '${msisdn}')
+			and 
+			start_time = to_date('${starttime}','yyyy-mm-dd hh24:mi:ss')
+			and 
+			end_time = to_date('${endtime}','yyyy-mm-dd hh24:mi:ss')
+			and status = 0
+			and USER_ID not in (999999999999,1106)
+		]]>
+	</sql>
+	
+	
+	<sql id="COMP_CONFIRM_USERINFO" type="ftl">
+		SELECT * FROM V_COMPLAIN_LIMIT_IMSI_BASE WHERE (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
+	</sql>
+	
+	<sql id="COMP_CONFIRM_SNAPSHOT" type="ftl">
+		 select * from V_COMPLAIN_LIMIT_IMSI_TARGET where seq = ${seq} and sdate = trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
+	</sql>
+	
+	<sql id="COMP_CONFIRM_ALLCAUSE" type="ftl">
+		select * from V_COMPLAIN_DJ_ALLCAUSE where seq = ${seq}
+	</sql>
+	
+	<sql id="COMP_CONFIRM_MAINCAUSE" type="ftl">
+		SELECT * FROM V_COMPLAIN_XDR_NEW_CONCLUSION where seq=${seq}
+	</sql>
+	
+	<sql id="COMP_CONFIRM_ANALABEL" type="ftl">
+		select * from V_COMPLAIN_LIMIT_FEEL_TARGET where (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
+	</sql>
+	
+	<sql id="COMP_CONFIRM_AGAINSTALL" type="ftl">
+		select
+		b.seq,
+		b.attach_rate u_attach_rate,
+		b.def_rate u_def_rate,
+		b.tau_rate u_tau_rate,
+		b.s1ho_o_rate u_s1ho_o_rate,
+		b.s1ho_i_rate u_s1ho_i_rate,
+		b.dns_rate u_dns_rate,
+		b.tcp_rate u_tcp_rate,
+		b.tcp_latency u_tcp_latency,
+		b.http_latency u_http_latency,
+		b.http_rate u_http_rate,
+		b.tput500k u_tput500k,
+		c.attach_rate a_attach_rate,
+		c.def_rate a_def_rate,
+		c.tau_rate a_tau_rate,
+		c.s1ho_o_rate a_s1ho_o_rate,
+		c.s1ho_i_rate a_s1ho_i_rate,
+		c.dns_rate a_dns_rate,
+		c.tcp_rate a_tcp_rate,
+		c.tcp_latency a_tcp_latency,
+		c.http_latency a_http_latency,
+		c.http_rate a_http_rate,
+		c.tput500k a_tput500k
+		from
+		(select * from V_COMPLAIN_LIMIT_IMSI_PROCESS WHERE (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') sdate FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq})) ) b
+		left join
+		(select * from V_COMPLAIN_LIMIT_ALL_PROCESS  WHERE (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') sdate FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq})) ) c on b.seq=c.seq
+	</sql>
+	
+	<sql id="CONFIRM_CAUSE_LINE" type="ftl">
+		select to_char(procedure_start_time,'yyyy/mm/dd hh24') shour,event_name,count(eventlab_flag) nums
+		from rpt_complain_excp_pre_a_h a
+		left join cfg_complain_xdr_rule b on a.eventlab_flag=b.event_id
+		where (seq,sdate) in (select seq,trunc(end_time,'hh24') from rpt_complaint_imsi_list where seq=${seq})
+		and eventlab_flag is not null
+		group by to_char(procedure_start_time,'yyyy/mm/dd hh24'),event_name
+		order by SHOUR ASC,nums desc
+	</sql>
+	
+	<sql id="CONFIRM_CAUSE_LIST" type="ftl">
+		SELECT * FROM V_COMPLAIN_DJ_DETAIL WHERE (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
+	</sql>
+	
+	
+	
+	<!-- 投诉定位 -->
+	<sql id="COMP_LOCATE_MAINCAUSE" type="ftl">
+		SELECT * FROM V_COMPLAIN_PRO_NEW_CONCLUSION WHERE (SEQ,SDATE) IN (SELECT seq,TRUNC(end_time,'hh24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
+	</sql>
+	<sql id="COMP_LOCATE_CATEGPRY" type="ftl">
+		SELECT SDATE, SEQ, GRP_ID, GRP_NAME, GRP_COUNTS, GRP_SCORE, GRP_SCR_RATIO
+		FROM RPT_COMPLAIN_GRP_STATIC_H
+		WHERE (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
+		ORDER BY RANK_SCR_GRP
+	</sql>
+	<!--用户2/4G网络图表呈现-->
+	<sql id="USER_24G_VIEW_LINE" type="ftl">
+		select * from v_rpt_complain_net_flag_h where (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq})) order by date_char
+	</sql>
+	<!--用户2/4G网络轨迹（地图渲染用户轨迹）-->
+	<sql id="USER_24G_CELL_TRAVEL" type="ftl">
+		select t.*, c.band, c.dir, c.cel_name from (select * from v_rpt_complain_net_avg_h where (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq})) and longitude > 0 and latitude > 0 order by entry_time asc) t left join CFG_COMPLAIN_SH_CELLCONFIG c on t.eci=c.eci
+	</sql>
+	<!--用户2/4G网络小区异常事件汇总（地图渲染汇总过的小区）-->
+	<sql id="USER_24G_CELL_ABNORMAL_EVENT_COUNT" type="ftl">
+		select a.*, c.band, c.dir, c.cel_name
+		from (select t.seq,
+				t.ECI,
+				t.enb_id,
+				t.cellid,
+				t.enb_id || '_' || t.cellid enb_cell,
+				sum(t.SUM_XDR_BD_COUNTS) SUM_XDR_BD_COUNTS,
+				ROUND(avg(t.AVG_RSRP),2) AVG_RSRP,
+				ROUND(avg(t.AVG_RSRQ),2) AVG_RSRQ,
+				ROUND(avg(t.AVG_PHR),2) AVG_PHR,
+				ROUND(avg(t.AVG_RECEIVED_POWER),2) AVG_RECEIVED_POWER,
+				ROUND(avg(t.AVG_DISTANCE*78),2) AVG_DISTANCE,
+				t.longitude,
+				t.latitude
+		from v_rpt_complain_net_avg_h t
+		where (t.SEQ,t.SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
+		and t.longitude > 0  and t.latitude  > 0
+		group by t.seq,
+				t.eci,
+				t.enb_id,
+				t.cellid,
+				t.enb_id || '_' || t.cellid,
+				t.longitude,
+				t.latitude) a
+		left join CFG_COMPLAIN_SH_CELLCONFIG c on a.eci = c.eci
+	</sql>
+	<!-- 地图渲染 用户轨迹(小区占用时长) -->
+	<sql id="USER_24G_CELL_HOLD_TIME" type="ftl">
+	 SELECT A.SEQ, A.ECI, B.CEL_NAME, B.LNG longitude, B.LAT latitude, B.FREQ, B.BAND, B.DIR, COUNT(*) * 15 / 60  分钟, DENSE_RANK() OVER(ORDER BY COUNT(*) * 15 / 60 DESC) DURA_RANK
+	  FROM rpt_complain_net_flag_h A
+	  LEFT JOIN CFG_COMPLAIN_SH_CELLCONFIG B
+	    ON A.ECI = B.ECI
+	 WHERE (A.seq, A.sdate) in (select seq, trunc(end_time, 'hh24')
+	                              from rpt_complaint_imsi_list
+	                             where seq = ${seq})
+	   and B.LNG > 0  and B.LAT  > 0
+	   AND A.NET_FLAG = '4G'
+	 GROUP BY A.SEQ, A.ECI, B.CEL_NAME, B.LNG, B.LAT, B.FREQ, B.BAND, B.DIR
+	</sql>
+	<!--用户2/4G网络单个小区异常事件-->
+	<sql id="USER_24G_ONE_CELL_ABNORMAL_EVENT" type="ftl">
+		select * from v_rpt_complain_net_avg_h t where t.seq=${seq} and t.sdate = trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24') and t.eci='${eci}'
+	</sql>
+	<!--用户2/4G网络小区某一异常事件详情-->
+	<sql id="USER_24G_ONE_CELL_ABNORMAL_EVENT_DETAIL" type="ftl">
+		select t.date_char,
+			t.ECI,
+			m.eutrancell_name,
+			t.ENB_ID,
+			t.CELLID,
+			t.EVENT_DJ_FLAG,
+			t.RSRP,
+			t.RSRQ,
+			t.DISTANCE,
+			t.UL_SINR,
+			t.received_power,
+			t.XDR_BD_COUNTS,
+			m.city_name,
+			m.scene_name
+		from v_rpt_complain_net_flag_h t, tas_master.p_netconf_d m
+		where t.seq = ${seq}
+			and t.sdate = trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
+			and t.DATE_CHAR_CELL_MIN = '${entryTime}'
+			and t.eci=m.eci
+	</sql>
+	<!--定位分类（一级下钻）-->
+	<sql id="COMP_LOCATE_CATEGPRY_LEAVEL_ONE" type="ftl">
+		SELECT c.GRP_NAME, b.QNUM_NAME, a.ELE_ID, a.ELE_NAME, SUM(a.ELE_COUNTS) ELE_COUNTS, MAX(a.ELE_SCR_RATIO) ELE_SCR_RATIO
+		FROM
+			(SELECT * FROM RPT_COMPLAIN_ELE_STATIC_H a WHERE (a.seq,a.sdate) in (select seq,trunc(end_time,'hh24') from rpt_complaint_imsi_list where seq=${seq})) a,
+			(SELECT * FROM RPT_COMPLAIN_QNUM_STATIC_H a WHERE (a.seq,a.sdate) in (select seq,trunc(end_time,'hh24') from rpt_complaint_imsi_list where seq=${seq})) b,
+			(SELECT * FROM RPT_COMPLAIN_GRP_STATIC_H a WHERE (a.seq,a.sdate) in (select seq,trunc(end_time,'hh24') from rpt_complaint_imsi_list where seq=${seq})) c
+		WHERE a.qnum_id=b.qnum_id(+) and nvl(b.grp_id,b.qnum_id)=c.grp_id(+) AND c.GRP_ID=${grpId}
+		GROUP BY a.SDATE, a.SEQ, a.ELE_ID, a.ELE_NAME, c.GRP_NAME, b.QNUM_NAME
+		ORDER BY QNUM_NAME, ELE_SCR_RATIO DESC
+	</sql>
+	<!--
+		 t.SOURCE_TABLE,
+		 t.FLAG_ALL_DJ_MIN,
+		 t.FLAG_ALL_DW_MIN,
+		 t.TYPE_NAME 
+	 -->
+	<sql id="LOCATE_XDR_PAGE" type="ftl">
+		select * from V_COMPLAIN_DW_DETAIL t where (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq})) order by procedure_start_time
+	</sql>
+	<sql id="COMP_LOCATE_IMSICELL" type="ftl">
+		SELECT * FROM V_COMPLAIN_POSITION_GIS_IMSI WHERE  latitude > 0  and longitude > 0 AND (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
+	</sql>
+	<sql id="COMP_LOCATE_CELL" type="ftl">
+		select t.* from V_COMPLAIN_POSITION_GIS_CELL t where (t.SEQ,t.SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq})) order by sdate asc,flag desc nulls last
+	</sql>
+	
+	<!-- 数据分析 -->
+	<sql id="DATA_UEMR_LINE" type="ftl">
+		select 
+			to_char(TIME,'yyyy.mm.dd hh24:mi:ss.FF6') smill,
+			avg(PHR-23) PHR,
+			avg(ENB_RECEIVED_POWER-140) ENB_RECEIVED_POWER,
+			avg(UL_SINR - 10) UL_SINR,
+			avg(TA/16) TA,
+			avg(SERVING_RSRP - 140) SERVING_RSRP,
+			avg((SERVING_RSRQ - 39)/2) SERVING_RSRQ 
+		from 
+		xdr_ue_mr_${seq} GROUP by TIME order by TIME
+	</sql>
+	
+	<sql id="DATA_UEMR_PAGENUM" type="ftl">
+		select floor(min(rn)/${pagesize}) pageno from
+		(select row_number() over (order by TIME asc) rn, t.time from xdr_ue_mr_${seq} t)
+		where time = TO_TIMESTAMP('${sdate}','yyyy-mm-dd hh24:mi:ss.FF6')
+	</sql>
+	
+	
+	
+	<sql id="DATA_UEMR_XDR" type="ftl">
+		select 
+		to_char(TIME,'yyyy.mm.dd hh24:mi:ss.FF6') smill,
+		mod(t.cell_id,256) cell_id_str,
+		(PHR-23) RE_PHR,
+		(ENB_RECEIVED_POWER-140) RE_ENB_RECEIVED_POWER,
+		(UL_SINR - 10) RE_UL_SINR,
+		divide(TA,16,2) RE_TA,
+		(SERVING_RSRP - 140) RE_SERVING_RSRP,
+		divide((SERVING_RSRQ - 39),2,2) RE_SERVING_RSRQ,
+		t.* from 
+		xdr_ue_mr_${seq} t where  1 = 1
+		${stime}
+		order by TIME
+	</sql>
+	<sql id="DATA_ANALYSE_XDR" type="ftl">
+		 select 
+		 t.*
+		 from V_COMPLAIN_DATA_LIST t where seq = ${seq} and sdate = trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
+		 order by procedure_start_time
+	</sql>
+	<sql id="DATA_ANALYSE_OMC" type="ftl">
+		 select * from V_COMPLAIN_OMC_CELL_H where seq = ${seq}
+		 and sdate &gt;= trunc(to_date('${sdate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
+		 and sdate &lt;= trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
+	</sql>
+	<sql id="DATA_ANALYSE_CELLWARN" type="ftl">
+		 select * from V_COMPLAIN_PM_CELL_LIST where seq = ${seq} and sdate = trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
+	</sql>
+	
+	<!-- 		        case when b.maj_overview is null then
+		             case when d.status=8 then '查询数据为空，建议延长查询时间或确认用户是否在网络上' 
+		                  when d.status=7 then '工单验证失败，建议检查工单用户号码是否对应，以及查询时间是否超出' 
+		                  when d.status=5 then '查询异常，建议检查用户是否已被查询或再次查询'   
+		             else '用户可能已被查询，建议修改查询时间重查' END      
+		        else  b.maj_overview end  "问题主因", -->
+	<sql id="ORDER_RECORDS_RESULTS" type="ftl">
+		select  d.seq         "序列号",
+		        d.sheetno        "工单号",
+		        d.imsi           "用户IMSI",
+		        d.msisdn         "手机号码",
+		        d.start_time     "开始时间",
+		        d.end_time       "结束时间",
+		        b.maj_overview "问题主因",
+		        b.maj_conclusion "整体概述",
+		        d.gd_failue_cause "失败原因"
+		from (select * from rpt_complaint_imsi_list where ${seq}) d
+		left join rpt_complain_smry_detail b
+		on d.seq = b.seq
+	</sql>
+	
+	<sql id="COMP_CONFIRM_APPINFO" type="ftl">
+		SELECT A.SEQ ,B.APP_SUB_CH_NAME APP_NAME
+		,ROUND(   SUM( NVL(UL_DATA,0)+NVL(DL_DATA,0) )/1024/1000,  2)  流量MB
+		,ROUND(   DECODE( SUM( NVL(ULRTTTIMES,0) ),0,0,SUM( NVL(ULRTTTOTALDELAY,0) )/SUM( NVL(ULRTTTIMES,0) )/1000 ),2   ) 上行RTT时延
+		,ROUND(   DECODE( SUM( NVL(DLRTTTIMES,0) ),0,0,SUM( NVL(DLRTTTOTALDELAY,0) )/SUM( NVL(DLRTTTIMES,0) )/1000 ),2) 下行RTT时延
+		,ROUND(   AVG( NVL(FIRST_HTTP_RES,0) ),  2    ) 首包响应时延
+		,ROUND(   100*DECODE( SUM( NVL(A.UL_IP_PACKET,0)+NVL(A.DL_IP_PACKET,0) ),0,0,SUM( NVL(A.U_TCP_RET,0)+NVL(A.D_TCP_RET,0) )/SUM( NVL(A.UL_IP_PACKET,0)+NVL(A.DL_IP_PACKET,0) ) ),2   ) 重传率
+		,ROUND(   100*DECODE( SUM( NVL(A.UL_IP_PACKET,0) ),0,0,SUM( NVL(A.U_TCP_RET,0) )/SUM( NVL(A.UL_IP_PACKET,0) ) ),2   ) 上行重传率
+		,ROUND(   100*DECODE( SUM( NVL(A.DL_IP_PACKET,0) ),0,0,SUM( NVL(A.D_TCP_RET,0) )/SUM( NVL(A.DL_IP_PACKET,0) ) ),2) 下行重传率
+		,ROUND(   100*DECODE( SUM( NVL(A.TCP_TRY,0) ),0,100,SUM( NVL(A.TCP_SUC,0) )/SUM( NVL(A.TCP_TRY,0) ) ),2) TCP建立成功率
+		,ROUND(   100*DECODE( SUM( NVL(A.HTTP_TRY,0) ),0,100,SUM( NVL(A.HTTP_SUC,0) )/SUM( NVL(A.HTTP_TRY,0) ) ),2) HTTP成功率
+		,SUM( NVL(ULZEROWINDOWTIMES,0)  ) UE侧零窗口次数
+		,SUM( NVL(DLZEROWINDOWTIMES,0)  ) SP侧零窗口次数
+		FROM RPT_COMPLAIN_IMSI_APP_H A,cfg_complian_app_type_code B
+		WHERE A.APP_TYPE=B.APP_ID(+) AND A.APP_SUB_TYPE=B.APP_SUB_ID(+)
+		AND A.SEQ = ${seq}
+		AND (select trunc(end_time,'hh24') from rpt_complaint_imsi_list where SEQ IN (${seq})) >= a.sdate
+		AND a.sdate >= (select trunc(end_time,'hh24')-stime/24 from rpt_complaint_imsi_list where SEQ IN (${seq}))
+		GROUP BY A.SEQ ,B.APP_SUB_CH_NAME
+	</sql>
+
+	<sql id="RPT_COMPLAIN_XDR_COUNT_RESULT" type="ftl">
+		select * from rpt_complain_xdr_count_result where seq=${seq}
+	</sql>
+</sqlRoot>

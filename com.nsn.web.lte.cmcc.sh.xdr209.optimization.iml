@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+    <output url="file://$MODULE_DIR$/bin" />
+    <output-test url="file://$MODULE_DIR$/bin" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="lib" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="lib1" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="lib2" level="project" />
+    <orderEntry type="library" name="lib3" level="project" />
+    <orderEntry type="library" name="lib4" level="project" />
+    <orderEntry type="library" name="lib5" level="project" />
+    <orderEntry type="library" name="quartz-2.3.0" level="project" />
+    <orderEntry type="module" module-name="com.nsn.logger" />
+    <orderEntry type="module" module-name="com.nsn.scheduler" />
+    <orderEntry type="module" module-name="com.nsn.web" />
+    <orderEntry type="module" module-name="com.nsn.web.lte" />
+    <orderEntry type="module" module-name="com.nsn.web.lte.sys" />
+    <orderEntry type="module" module-name="framework" />
+  </component>
+</module>

@@ -1,0 +1,666 @@
+<#include "/base.html"/>
+<<style>
+	<!--
+	.td-txt-align{
+		text-align:left!important;;
+	}
+	-->
+</style>
+<@layout>
+<link rel="stylesheet" href="/optimization/static/css/bootstrap-table.min.css" />
+<link rel="stylesheet" href="/optimization/static/css/optimization.css" />
+<link rel="stylesheet" href="/optimization/static/measure/demo.css" />
+<link rel="stylesheet" href="/optimization/static/measure/leaflet.measurecontrol.css" />
+<link rel="stylesheet" href="/optimization/static/draw/leaflet.draw.css" />
+<section class="content">
+	<div class="bg-currency">
+		<div class="col-md-12">
+			<div class="nav-tabs-custom">
+				<ul class="nav nav-tabs" id="main-nav-tab">
+					<li class="active"><a href="#tab_user_info" data-toggle="tab" aria-expanded="true"><i class="fa fa-user-circle-o" aria-hidden="true"></i>用户分析状态</a></li>
+					<!-- <li class=""><a href="#tab_order_statistic" data-toggle="tab" aria-expanded="false"><i class="fa fa-bars" aria-hidden="true"></i>工单统计</a></li> -->
+				</ul>
+			</div>
+			<div class="tab-content" style="padding: 0.5%;">
+				<div id="tab_user_info" class="col-md-12 tab-pane active">
+					<section class="content-header bg-currency" style="padding: 0px 10px 0px 0; height: 50px;">
+						<form class="navbar-form pull-left" role="search" style="padding-left: 0">
+							<div class="form-group">
+								<label class="radio-inline">IMSI/手机号</label> <input class="form-control" id="imsival" value="" placeholder="用户号码" style="width: 140px;">
+							</div>
+							<div class="form-group">
+								<label class="radio-inline">投诉时间</label> <input class="form-control" onclick="laydate({istime: true, format: 'YYYY-MM-DD', choose: function(dates){}})" id="sdate" value="" placeholder="投诉时间" style="width: 160px;">
+							</div>
+							<!-- <div class="form-group">
+								<label class="radio-inline">回溯时间</label>
+								<input class="form-control" id="timeVars" value="" placeholder="回溯时间" style="width: 100px;">
+								
+							</div>
+						    <div class="form-group">
+								<label class="radio-inline">经纬度</label> <input class="form-control" id="pre_lonlat" value="" placeholder="请输入经纬度" style="width:250px;font-size:8pt;">
+							</div> -->
+							
+							&nbsp;&nbsp;<a href="javascript:query(0);" class="btn btn-success btn-sm">&nbsp;查询&nbsp;</a>
+						</form>
+						<!-- <div class="change-block" style="float: right">
+							<i class="fa fa-clone" aria-hidden="true" style="color: #33a533"></i>
+						</div> -->
+					</section>
+					<section class="content-header bg-currency" style="display: none; padding: 0px 10px 0px 0; height: 50px;" hidden>
+						<form class="navbar-form pull-left" role="search" style="padding-left: 0">
+							<a href="static/template/template.xls" class="btn btn-success btn-sm" style="margin-left: 20px;">下载模版</a>
+							<label class='btn btn-success btn-sm' for='uploadFile' style="margin-left: 20px;">导入工单</label> <input type='file' id='uploadFile' style='display: none;' onchange="javascript:importFile(this);" accept='application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' />
+							<a href="javascript:exportQuery();" class="btn btn-success btn-sm" style="margin-left: 20px;" id="exportQuery" queryId="">刷新数据</a>
+						</form>
+						<div class="change-block" style="float: right">
+							<i class="fa fa-clone" aria-hidden="true"></i>
+						</div>
+					</section>
+					<a id="anchor1" name="detail-anchor" hidden></a>
+					<blockquote hidden>
+						<p>
+							<i class="fa fa-commenting-o" aria-hidden="true"></i> 展示已查询或者正在查询用户的状态
+							<a href="#anchor1" class="btn btn-success btn-sm btn-sm-right" id="index-query">展开指标查询</a>
+						</p>
+					</blockquote>
+					<div class="col-md-12 tab-pane" style="height: auto;" hidden>
+						<table id="rpt_imsi_list" class="table table-responsive text-nowrap table-condensed">
+							<thead></thead>
+							<tbody>
+							<tr>
+								<td colspan="12" class="no-data">暂无数据</td>
+							</tr>
+							</tbody>
+						</table>
+						<section class="content-header bg-currency index-query" style="height: 555px;margin-top:0px;display: none; padding: 0px 10px 0px 0;">
+							<div class="col-md-12" style="height:50px;">
+								<form id="index-query-form" class="navbar-form pull-left" role="search" style="margin-left: 5px;">
+									<div class="form-group">
+										<label class="radio-inline">LACCI</label> <input class="form-control" id="lacci" name="lacci" value="" placeholder="LACCI" style="width: 140px;">
+									</div>
+									<div class="form-group">
+										<label class="radio-inline">小区名称</label> <input class="form-control" id="cell_name" name="cell_name" value="" placeholder="小区名称" style="width: 140px;">
+									</div>
+									<div class="form-group">
+										<label class="radio-inline">开始时间</label> <input class="form-control" onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss', choose: function(dates){}})" id="start_time" name="start_time" value="" placeholder="开始时间" style="width: 160px;">
+									</div>
+									<div class="form-group">
+										<label class="radio-inline">结束时间</label> <input class="form-control" onclick="laydate({istime: true, format: 'YYYY-MM-DD hh:mm:ss', choose: function(dates){}})" id="end_time" name="end_time" value="" placeholder="结束时间" style="width: 160px;">
+									</div>
+									&nbsp;<a href="javascript:$page.locateView.openIndexPanel();" class="btn btn-success btn-sm">选择查询指标</a>&nbsp;&nbsp;&nbsp;&nbsp;
+									&nbsp;<a href="javascript:$page.locateView.locationIndexQuery();" class="btn btn-success btn-sm">&nbsp;查询&nbsp;</a>
+								</form>
+							</div>
+							<div class="col-md-12" style="height:259px;">
+								<table id="index_query_result_table" class="table table-responsive text-nowrap table-condensed table-bordered" style="margin-left: 5px;">
+									<thead></thead>
+									<tbody></tbody>
+								</table>
+							</div>
+							<div id="chart14_index" class="col-md-12" style="height: 245px; padding: 0 30px 20px 0;"></div>
+							<div style="display: none" id="index_panel">
+								<div class="col-md-12" style="height:30px;width:100%;">
+									<form class="navbar-form pull-left" role="search" style="margin-left: 50px;">
+										<div class="form-group"  style="margin-left: 50px;">
+											<label class="radio-inline">指标名称</label> <input class="form-control" id="index_key" name="index_key" value="" style="width: 270px;" autocomplete="off">
+										</div>
+									</form>
+								</div>
+								<div class="col-md-12" style="margin-top: 30px;width:100%;">
+									<div class="col-md-9">
+										<table id="index_table" style="margin-left:15px;">
+											<thead style="height:calc( 100% - 1em );display: table;width: 100%;table-layout: fixed;"></thead>
+											<tbody style="display:block;height:340px;overflow-y:scroll;"></tbody>
+										</table>
+									</div>
+									<div class="col-md-3">
+										<!-- <div style="width:98%;height:335px;border:1px solid #A9A9A9">
+											<form id="index-key-form" class="navbar-form pull-left" role="search">
+											</form>
+										</div> -->
+									</div>
+								</div>
+							</div>
+						</section>
+						<div class="clear"></div>
+					</div>
+					<div id="detail-info-panel" class="col-md-12 tab-pane">
+						<div class="nav-tabs-custom">
+							<ul class="nav nav-pills">
+								<li class="active"><a href="#tab_comp_confirm" data-toggle="tab" aria-expanded="false"><i class="fa fa-handshake-o" aria-hidden="true"></i>投诉定界</a></li>
+								<li class=""><a href="#tab_comp_locate" data-toggle="tab" aria-expanded="false"><i class="fa fa-location-arrow" aria-hidden="true"></i>投诉定位</a></li>
+								<li class=""><a href="#tab_data_analysis" data-toggle="tab" aria-expanded="false"><i class="fa fa-bar-chart" aria-hidden="true"></i>数据分析</a></li>
+								<!-- <li style="float: right; font-size: 18px;"><a onclick="closeDetail();"><i class="fa fa-times-circle" aria-hidden="true" style="margin-right: 0"></i></a></li> -->
+							</ul>
+						</div>
+						<div class="tab-content">
+							<!-- 投诉定界 -->
+							<div id="tab_comp_confirm" class="col-md-12 tab-pane active" >
+								<blockquote>
+									<p>
+										<i class="fa fa-cubes" aria-hidden="true"></i>用户信息
+									</p>
+								</blockquote>
+								<table class="table table-responsive text-nowrap table-condensed" id="user_info_table" hidden>
+									<thead>
+									<tr>
+										<th>投诉用户</th>
+										<th>终端品牌</th>
+										<th>终端型号</th>
+										<th>使用流量</th>
+										<th>经过小区</th>
+									</tr>
+									</thead>
+									<tbody></tbody>
+								</table>
+								<blockquote>
+									<p>
+										<i class="fa fa-camera" aria-hidden="true"></i>APP指标和流量使用情况
+									</p>
+								</blockquote>
+								<div class="col-md-12 tab-pane" hidden>
+									<div id="chart18" class="col-md-9" style="height: 290px; padding: 0 10px; padding-bottom: 10px;"></div>
+									<div id="chart19" class="col-md-3" style="height: 290px; padding: 0 10px; padding-bottom: 10px;"></div>
+								</div>
+								<blockquote>
+									<p>
+										<i class="fa fa-camera" aria-hidden="true"></i>指标快照
+									</p>
+								</blockquote>
+								<div class="col-md-12 tab-pane">
+									<div id="chart1" class="col-md-1"></div>
+									<div id="chart2" class="col-md-1"></div>
+									<div id="chart3" class="col-md-1"></div>
+									<div id="chart4" class="col-md-1"></div>
+									<div id="chart5" class="col-md-1"></div>
+									<div id="chart6" class="col-md-1"></div>
+									<div id="chart7" class="col-md-1"></div>
+									<div id="chart8" class="col-md-1"></div>
+									<div id="chart9" class="col-md-1"></div>
+									<div id="chart10" class="col-md-1"></div>
+									<div id="chart11" class="col-md-1"></div>
+									<div id="chart12" class="col-md-1"></div>
+									<div class="clear"></div>
+								</div>
+								<blockquote>
+									<p>
+										<i class="fa fa-internet-explorer" aria-hidden="true"></i>诊断定界
+									</p>
+								</blockquote>
+					            <div class="col-md-12" style="height: 90px; padding-top: 8px;">
+					            <div class="col-md-2 big-image">
+										<i class="fa fa-users ico-image" aria-hidden="true"></i> <i class="conn-line"></i> <i class="fa fa-angle-right" aria-hidden="true"></i> <i id="user_label" class="fa fa-check-circle icon-yes" aria-hidden="true"></i>
+										<div class="icon-label">用户</div>
+									</div>
+									<div class="col-md-2 big-image">
+										<i class="fa fa-user-circle-o ico-image" aria-hidden="true"></i> <i class="conn-line"></i> <i class="fa fa-angle-right" aria-hidden="true"></i> <i id="terminal_label" class="fa fa-check-circle icon-yes" aria-hidden="true"></i>
+										<div class="icon-label">终端</div>
+									</div>
+									<div class="col-md-2 big-image">
+										<i class="fa fa-wifi ico-image" aria-hidden="true"></i> <i class="conn-line"></i> <i class="fa fa-angle-right" aria-hidden="true" style="right: -38%;"></i> <i id="wireless_label" class="fa fa-check-circle icon-yes" aria-hidden="true"></i>
+										<div class="icon-label">无线</div>
+									</div>
+									<div class="col-md-2 big-image">
+										<i class="fa fa-database ico-image" aria-hidden="true"></i> <i class="conn-line"></i> <i class="fa fa-angle-right" aria-hidden="true" style="right: -36%;"></i> <i id="corenet_label" class="fa fa-times-circle icon-no" aria-hidden="true"></i>
+										<div class="icon-label">核心网</div>
+									</div>
+									<div class="col-md-2 big-image">
+										<i class="fa fa-sitemap ico-image" aria-hidden="true"></i> <i id="sp_label" class="fa fa-check-circle icon-yes" aria-hidden="true"></i>
+										<div class="icon-label">SP</div>
+									</div>
+								</div>
+								<div class="clear"></div>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>主因定界
+									</p>
+								</blockquote>
+								<ul class="list-group">
+								<!-- <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>  -->
+									<li class="list-group-item" style="border-top: 0; border-bottom: 0"><label id="confirm_main_cause"></label></li>
+								</ul>
+								<div class="clear"></div>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>感知标签
+									</p>
+								</blockquote>
+								<ul class="list-group">
+									<li class="list-group-item" style="border-top: 0; border-bottom: 0"><label id="feel_label" style="font-weight: normal;"></label></li>
+								</ul>
+								<div class="clear"></div>
+								<blockquote>
+									<p>
+										<i class="fa fa-stack-overflow" aria-hidden="true"></i>流程分析
+									</p>
+								</blockquote>
+								<div class="col-md-12 tab-pane" hidden>
+									<div id="chart13" class="col-md-7" style="height: 245px; padding: 0 15px; padding-bottom: 10px;"></div>
+									<div id="chart13_1" class="col-md-3" style="height: 245px; padding: 0 15px; padding-bottom: 10px;"></div>
+									<div id="chart13_2" class="col-md-2" style="height: 245px; padding: 0 15px; padding-bottom: 10px;"></div>
+									<div class="clear"></div>
+								</div>
+								<div class="clear"></div>
+								<blockquote>
+									<p>
+										<i class="fa fa-stack-overflow" aria-hidden="true"></i>异常事件分布
+										<!-- <a href="javascript:;" class="btn btn-success btn-sm btn-sm-right legend-item" val=1>&nbsp;全不选&nbsp;</a> -->
+									</p>
+								</blockquote>
+								<div class="col-md-12 tab-pane">
+									<div id="chart16" class="col-md-12" style="height: 250px; padding: 0 15px; padding-bottom: 10px;"></div>
+									<div class="clear"></div>
+								</div>
+								<blockquote>
+									<p>
+										<i class="fa fa-stack-overflow" aria-hidden="true"></i>具体输出 <!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="0" name="AbnormalCases_">&nbsp;导出&nbsp;</a> -->
+									</p>
+								</blockquote> 
+								 <div class="nav-tabs-custom" style="padding: 0px; margin-top: 0px;">
+                                   <ul class="nav nav-tabs bg-white nav-img">
+                                      <!-- <li><a class="text-primary"><i class="fa fa-file-text-o text-info" style="margin-right:5px;"></i>无线具体话单回溯</a></li> -->
+                                      <li class="active" style="margin-left: 12px;"><a onclick="specificOutputNew('http')" data-toggle="tab">http无线具体话单回溯</a></li>
+                                      <li><a data-toggle="tab" onclick="specificOutputNew('S1mme')">S1mme无线具体话单回溯</a></li>
+                                    </ul>
+                                </div>
+								<table id="confirm_cause_list" class="table table-responsive text-nowrap table-condensed table-bordered">
+									<thead></thead>
+									<tbody></tbody>
+								</table>
+								<div class="clear"></div>
+							</div>
+							<!-- 投诉定位 -->
+							<div id="tab_comp_locate" class="col-md-12 tab-pane">
+							   <div class="col-md-12 tab-pane" style="margin-bottom:5px">
+								  <div class="col-md-6" style="height: 400px;">
+										<div id="gisPanel0" style="height: 100%; width: 100%"></div>
+									</div>
+									<div class="col-md-6" style="height: 400px;">
+										<table id="user_24g_view_event_table" class="table table-responsive text-nowrap table-condensed table-bordered">
+											<thead></thead>
+											<tbody></tbody>
+										</table>
+									</div> 
+								 </div>
+								 <blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>定位分类 <!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="2" name="EventsCategory_">&nbsp;导出&nbsp;</a> -->
+									</p>
+								</blockquote>
+								
+								<div class="nav-tabs-custom" style="padding: 0px; margin-top: 0px;">
+                                   <ul class="nav nav-tabs bg-white nav-img">
+                                   <!--  <li><a class="text-primary"><i class="fa fa-file-text-o text-info" style="margin-right:5px;margin-bottom:8px"></i>定位分类</a></li> -->
+                                      <li class="active" style="margin-left: 12px;"><a onclick="locateCategoryTableNew('1')" data-toggle="tab">http定位分类</a></li>
+                                      <li><a data-toggle="tab" onclick="locateCategoryTableNew('2')">S1mme定位分类</a></li>
+                                    </ul>
+                                </div>
+								<div class="col-md-12 tab-pane">
+									<div class="col-md-8" style="height: 245px;">
+										<table id="locate_category_list" class="table table-responsive text-nowrap table-condensed table-bordered">
+											<thead>
+											<tr>
+												<th>投诉时间</th>
+												<th>问题类别</th>
+												<!-- <th>问题评分</th> -->
+												<th>问题占比</th>
+											</tr>
+											</thead>
+											<tbody>
+											<tr>
+												<td colspan="4" class="no-data">暂无数据</td>
+											</tr>
+											</tbody>
+										</table>
+									</div>
+									<div id="chart14" class="col-md-4" style="height: 245px; padding: 0 30px 20px 0;"></div>
+									<div class="clear"></div>
+								</div>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>诊断定位主因
+									</p>
+								</blockquote>
+								<ul class="list-group">
+									<li class="list-group-item" style="border-top: 0; border-bottom: 0;"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> <label id="locate_main_cause"></label></li>
+								</ul>
+								<div class="clear"></div>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>用户4G网络图表呈现
+										<!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="9" name="User2G4GNetView_">&nbsp;导出&nbsp;</a>
+										<a href="javascript:;" class="btn btn-success btn-sm btn-sm-right legend-item" val=1>&nbsp;全不选&nbsp;</a> -->
+									</p>
+								</blockquote>
+								<div class="col-md-12 tab-pane">
+									<div id="chart14_1" class="col-md-12" style="height: 350px; padding: 0 15px; padding-bottom: 10px;"></div>
+									<!-- <div class="col-md-6" style="height: 400px;">
+										<div id="gisPanel0" style="height: 100%; width: 100%"></div>
+									</div>
+									<div class="col-md-6" style="height: 400px;">
+										<table id="user_24g_view_event_table" class="table table-responsive text-nowrap table-condensed table-bordered">
+											<thead></thead>
+											<tbody></tbody>
+										</table>
+									</div> -->
+									<div class="col-md-12" style="height: auto;">
+										<table id="user_24g_cell_hold_time_info_table" class="table table-responsive text-nowrap table-condensed table-bordered">
+											<thead></thead>
+											<tbody></tbody>
+										</table>
+									</div>
+									<div id="user_24g_view_event_detail_layer" class="col-md-12" style="display: none;">
+										<table id="user_24g_view_event_detail_table" class="table table-responsive text-nowrap table-condensed table-bordered">
+											<thead></thead>
+											<tbody></tbody>
+										</table>
+									</div>
+									<div class="clear"></div>
+								</div>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>异常事件定位详情<!--  <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="1" name="AbnormalXdr_">&nbsp;导出&nbsp;</a> -->
+									</p>
+								</blockquote>
+								<div id="locate_xdr_table_div" class="col-md-12 tab-pane">
+								  <table id="locate_xdr_table" class="table table-responsive text-nowrap table-condensed table-bordered">
+									<thead></thead>
+									<tbody></tbody>
+								</table>
+								<div class="clear"></div>
+								</div>
+								<!-- <blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>投诉小区详情 <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="3"  name="CellsOfComplaints_">&nbsp;导出&nbsp;</a>
+									</p>
+								</blockquote>
+								<div id="locate_giscell_table_div" class="col-md-12 tab-pane">
+								</div> -->
+								<div class="clear"></div>
+							</div>
+							<!-- 数据分析 -->
+							<div id="tab_data_analysis" class="col-md-12 tab-pane">
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>投诉用户UEMR分布
+										<a href="javascript:;" class="btn btn-success btn-sm btn-sm-right legend-item" val=1>&nbsp;全不选&nbsp;</a>
+									</p>
+								</blockquote>
+								<div class="col-md-12 tab-pane">
+									<div id="chart17" class="col-md-12" style="height: 350px; padding: 0 15px; padding-bottom: 10px;"></div>
+									<div class="clear"></div>
+								</div>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>投诉用户UEMR详单 <!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="7" name="UemrDetails_">&nbsp;导出&nbsp;</a> -->
+									</p>
+								</blockquote>
+								<table id="data_ana_uemr" class="table table-responsive text-nowrap table-condensed table-bordered">
+									<thead>
+									 <!-- <tr>
+										<th>TIME</th>
+										<th>XDR_ID</th>
+										<th>RAT</th>
+										<th>MSISDN</th>
+										<th>MME_GROUP_ID</th>
+										<th>MME_CODE</th>
+										<th>MME_UE_S1AP_ID</th>
+										<th>ENB_ID</th>
+										<th>CELL_ID</th>
+										<th>MR_TYPE</th>
+										<th>PHR</th>
+										<th>ENB_RECEIVED_POWER</th>
+										<th>UL_SINR</th>
+										<th>TA</th>
+										<th>AOA</th>
+										<th>SERVING_FREQ</th>
+										<th>SERVING_RSRP</th>
+										<th>SERVING_RSRQ</th>
+										<th>NEIGHBOR_CELL_NUMBER</th>
+										<th>NEIGHBOR_1_CELL_PCI</th>
+										<th>NEIGHBOR_1_FREQ</th>
+										<th>NEIGHBOR_1_RSRP</th>
+										<th>NEIGHBOR_1_RSRQ</th>
+										<th>NEIGHBOR_2_CELL_PCI</th>
+										<th>NEIGHBOR_2_FREQ</th>
+										<th>NEIGHBOR_2_RSRP</th>
+										<th>NEIGHBOR_2_RSRQ</th>
+										<th>NEIGHBOR_3_CELL_PCI</th>
+										<th>NEIGHBOR_3_FREQ</th>
+										<th>NEIGHBOR_3_RSRP</th>
+										<th>NEIGHBOR_3_RSRQ</th>
+										<th>NEIGHBOR_4_CELL_PCI</th>
+										<th>NEIGHBOR_4_FREQ</th>
+										<th>NEIGHBOR_4_RSRP</th>
+										<th>NEIGHBOR_4_RSRQ</th>
+										<th>NEIGHBOR_5_CELL_PCI</th>
+										<th>NEIGHBOR_5_FREQ</th>
+										<th>NEIGHBOR_5_RSRP</th>
+										<th>NEIGHBOR_5_RSRQ</th>
+										<th>NEIGHBOR_6_CELL_PCI</th>
+										<th>NEIGHBOR_6_FREQ</th>
+										<th>NEIGHBOR_6_RSRP</th>
+										<th>NEIGHBOR_6_RSRQ</th>
+										<th>NEIGHBOR_7_CELL_PCI</th>
+										<th>NEIGHBOR_7_FREQ</th>
+										<th>NEIGHBOR_7_RSRP</th>
+										<th>NEIGHBOR_7_RSRQ</th>
+										<th>NEIGHBOR_8_CELL_PCI</th>
+										<th>NEIGHBOR_8_FREQ</th>
+										<th>NEIGHBOR_8_RSRP</th>
+										<th>NEIGHBOR_8_RSRQ</th>
+									</tr>  -->
+									</thead>
+									<tbody>
+									<tr>
+										<td colspan="51" class="no-data">暂无数据</td>
+									</tr>
+									</tbody>
+								</table>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>投诉用户XDR详单 <!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="4" name="XdrDetailsForComplaints_">&nbsp;导出&nbsp;</a> -->
+									</p>
+								</blockquote>
+								<table id="data_ana_xdr" class="table table-responsive text-nowrap table-condensed table-bordered">
+									<thead></thead>
+									<tbody></tbody>
+								</table>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>无线质差小区指标<!--  <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="5" name="OmcIndecateViaCells_">&nbsp;导出&nbsp;</a> -->
+									</p>
+								</blockquote>
+								<table id="data_ana_omc" class="table table-responsive text-nowrap table-condensed table-bordered">
+									<thead></thead>
+									<tbody></tbody>
+								</table>
+								<blockquote>
+									<p>
+										<i class="fa fa-wpforms" aria-hidden="true"></i>无线质差小区告警 <!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="6" name="AlarmInformationViaCells_">&nbsp;导出&nbsp;</a> -->
+									</p>
+								</blockquote>
+								<table id="data_ana_cellwarn" class="table table-responsive text-nowrap table-condensed table-bordered">
+									<thead></thead>
+									<tbody></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="tab_order_statistic" class="col-md-12 tab-pane">
+					<section class="content-header bg-currency" style="padding: 0px 10px 0px 0; height: 50px;">
+						<form id="order-search-form" class="navbar-form pull-left" role="search" style="padding-left: 0">
+							<div class="form-group">
+								<label class="radio-inline" style="padding-left:10px;!important;">行政区域</label>
+								<input class="form-control" value="" id="area" name="area" style="width: 80px;">
+								<label class="radio-inline" style="padding-left:10px;!important;">投诉开始</label>
+								<input class="form-control" value="" onclick="laydate({istime: true, type: 'datetime',format: 'YYYY-MM-DD hh', choose: function(dates){}})" id="startTime" name="startTime" style="width: 110px;">
+							</div>
+							<div class="form-group">
+								<label class="radio-inline" style="padding-left:10px;!important;">账号</label>
+								<select class="form-control" id="orderUsers" name="orderUsers">
+									<option value="">全部用户</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label class="radio-inline" style="padding-left:10px;!important;">查询开始</label> <input class="form-control" value="" onclick="laydate({istime: true, type: 'datetime',format: 'YYYY-MM-DD hh', choose: function(dates){}})" id="checkStart" name="checkStart" style="width: 110px;">
+								<label class="radio-inline" style="padding-left:10px;!important;">查询结束</label> <input class="form-control" value="" onclick="laydate({istime: true, type: 'datetime',istoday: true,format: 'YYYY-MM-DD hh', choose: function(dates){}})" id="checkEnd" name="checkEnd" style="width: 110px;">
+							</div>
+							<div class="form-group">
+								<label class="radio-inline" style="padding-left:10px;!important;">号码</label> <input class="form-control" id="imsiMsisdn" name="imsiMsisdn" value="" placeholder="用户号码" style="width: 140px;">
+							</div>
+							<div class="form-group">
+								<label class="radio-inline" style="padding-left:10px;!important;">状态</label>
+								<select class="form-control" id="orderStatus" name="orderStatus" style="width:130px;">
+									<option value="">全部工单</option>
+									<option value="0">投诉分析完成</option>
+									<option value="1">排队获取数据</option>
+									<option value="2">数据正在生成</option>
+									<option value="3">数据生成失败</option>
+									<option value="4">正在投诉分析</option>
+									<option value="5">异常不可查询</option>
+									<option value="6">查询已经超时</option>
+									<option value="7">工单验证失败</option>
+									<option value="8">查询数据为空</option>
+									<option value="11">工单已过期</option>
+									<option value="12">溢出查询时间段</option>
+									<option value="13">工单号与号码不对应</option>
+									<option value="15">用户号码异常</option>
+								</select>
+							</div>
+							&nbsp;&nbsp;<a href="javascript:query(1);" class="btn btn-success btn-sm">&nbsp;查询&nbsp;</a>
+						</form>
+					</section>
+					<blockquote>
+						<p>
+							<i class="fa fa-commenting-o" aria-hidden="true"></i>投诉详单查询
+							<a href="javascript:reQueryOrder();" class="btn btn-success btn-sm btn-sm-right">&nbsp;工单重查&nbsp;</a>
+							<a href="javascript:;" class="btn btn-success btn-sm btn-export" key="8" name="ConclusionForComplaints_">&nbsp;导出&nbsp;</a>
+							<a href="javascript:delComps();" class="btn btn-success btn-sm btn-sm-right">&nbsp;删除&nbsp;</a>
+							<a href="javascript:query(1);" class="btn btn-success btn-sm btn-sm-right">&nbsp;刷新&nbsp;</a>
+						</p>
+					</blockquote>
+					<div class="col-md-12">
+						<table id="orderno_imsi_list" class="table table-responsive text-nowrap table-condensed">
+							<thead></thead>
+							<tbody></tbody>
+						</table>
+					</div>
+					<div class="clear"></div>
+					<blockquote>
+						<p>
+							<i class="fa fa-commenting-o" aria-hidden="true"></i>本月投诉走势
+						</p>
+					</blockquote>
+					<div class="col-md-12">
+						<div class="col-md-12" style="padding-right: 15px; height: 260px;" id="chart15"></div>
+					</div>
+					<div class="clear"></div>
+					<!-- <blockquote>
+						<p>
+							<i class="fa fa-commenting-o" aria-hidden="true"></i>本月投诉分布
+						</p>
+					</blockquote>
+					<div class="col-md-12" style="height: 400px;">
+						<div id="gisPanel2" style="height: 100%; width: 100%"></div>
+					</div> -->
+					<div class="clear"></div>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+		<div class="clear"></div>
+	</div>
+</section>
+<div id="multicell_panel" style="text-align:center; display: none;">
+	<textarea id='multicells' placeholder='请输入以英文标点分号;分隔的重点关注小区'></textarea>
+	<a href="javascript:layer.closeAll();" class="btn btn-success btn-sm">&nbsp;确定&nbsp;</a>
+</div>
+<div id="uemr_detail_msg" style="display: none;">
+	<div style="padding: 0px 10px 10px 10px;">
+		<table id="uemr_detail_msg_table" class="table table-responsive text-nowrap table-condensed table-bordered">
+			<thead>
+			<tr>
+				<th>TIME</th>
+				<th>XDR_ID</th>
+				<th>RAT</th>
+				<th>MSISDN</th>
+				<th>MME_GROUP_ID</th>
+				<th>MME_CODE</th>
+				<th>MME_UE_S1AP_ID</th>
+				<th>ENB_ID</th>
+				<th>CELL_ID</th>
+				<th>MR_TYPE</th>
+				<th>PHR</th>
+				<th>ENB_RECEIVED_POWER</th>
+				<th>UL_SINR</th>
+				<th>TA</th>
+				<th>AOA</th>
+				<th>SERVING_FREQ</th>
+				<th>SERVING_RSRP</th>
+				<th>SERVING_RSRQ</th>
+				<th>NEIGHBOR_CELL_NUMBER</th>
+				<th>NEIGHBOR_1_CELL_PCI</th>
+				<th>NEIGHBOR_1_FREQ</th>
+				<th>NEIGHBOR_1_RSRP</th>
+				<th>NEIGHBOR_1_RSRQ</th>
+				<th>NEIGHBOR_2_CELL_PCI</th>
+				<th>NEIGHBOR_2_FREQ</th>
+				<th>NEIGHBOR_2_RSRP</th>
+				<th>NEIGHBOR_2_RSRQ</th>
+				<th>NEIGHBOR_3_CELL_PCI</th>
+				<th>NEIGHBOR_3_FREQ</th>
+				<th>NEIGHBOR_3_RSRP</th>
+				<th>NEIGHBOR_3_RSRQ</th>
+				<th>NEIGHBOR_4_CELL_PCI</th>
+				<th>NEIGHBOR_4_FREQ</th>
+				<th>NEIGHBOR_4_RSRP</th>
+				<th>NEIGHBOR_4_RSRQ</th>
+				<th>NEIGHBOR_5_CELL_PCI</th>
+				<th>NEIGHBOR_5_FREQ</th>
+				<th>NEIGHBOR_5_RSRP</th>
+				<th>NEIGHBOR_5_RSRQ</th>
+				<th>NEIGHBOR_6_CELL_PCI</th>
+				<th>NEIGHBOR_6_FREQ</th>
+				<th>NEIGHBOR_6_RSRP</th>
+				<th>NEIGHBOR_6_RSRQ</th>
+				<th>NEIGHBOR_7_CELL_PCI</th>
+				<th>NEIGHBOR_7_FREQ</th>
+				<th>NEIGHBOR_7_RSRP</th>
+				<th>NEIGHBOR_7_RSRQ</th>
+				<th>NEIGHBOR_8_CELL_PCI</th>
+				<th>NEIGHBOR_8_FREQ</th>
+				<th>NEIGHBOR_8_RSRP</th>
+				<th>NEIGHBOR_8_RSRQ</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td colspan="51" class="no-data">暂无数据</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+<div style="display: none" id="cateLayerOne">
+	<table id="cate-table-one" width="99%" class="table table-responsive text-nowrap table-condensed table-bordered">
+		<thead></thead>
+		<tbody></tbody>
+	</table>
+</div>
+<div style="display: none" id="cateLayerTwo">
+	<table id="cate-table-two" width="99%" class="table table-responsive text-nowrap table-condensed table-bordered">
+		<thead></thead>
+		<tbody></tbody>
+	</table>
+</div>
+</@layout>
+<#include "/gis.html"/>
+<script src="/optimization/static/js/bootstrap-table.min.js"></script>
+<script src="/optimization/static/js/bootstrap-table-zh-CN.js"></script>
+<script src="/optimization/static/draw/leaflet.draw.js"></script>
+<script src="/optimization/static/measure/leaflet.measurecontrol.js"></script>
+<script src="/optimization/static/js/volte.js"></script>
+<script src="/optimization/static/js/circleChart.min.js"></script>
+<script src="/optimization/static/js/optimization.js"></script>
