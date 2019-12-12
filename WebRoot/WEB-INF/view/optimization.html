@@ -251,14 +251,14 @@
 									<div id="chart16" class="col-md-12" style="height: 250px; padding: 0 15px; padding-bottom: 10px;"></div>
 									<div class="clear"></div>
 								</div>
-								<blockquote>
+								<!-- <blockquote>
 									<p>
-										<i class="fa fa-stack-overflow" aria-hidden="true"></i>具体输出 <!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="0" name="AbnormalCases_">&nbsp;导出&nbsp;</a> -->
+										<i class="fa fa-stack-overflow" aria-hidden="true"></i>具体输出 <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="0" name="AbnormalCases_">&nbsp;导出&nbsp;</a>
 									</p>
 								</blockquote> 
 								 <div class="nav-tabs-custom" style="padding: 0px; margin-top: 0px;">
                                    <ul class="nav nav-tabs bg-white nav-img">
-                                      <!-- <li><a class="text-primary"><i class="fa fa-file-text-o text-info" style="margin-right:5px;"></i>无线具体话单回溯</a></li> -->
+                                      <li><a class="text-primary"><i class="fa fa-file-text-o text-info" style="margin-right:5px;"></i>无线具体话单回溯</a></li>
                                       <li class="active" style="margin-left: 12px;"><a onclick="specificOutputNew('http')" data-toggle="tab">http无线具体话单回溯</a></li>
                                       <li><a data-toggle="tab" onclick="specificOutputNew('S1mme')">S1mme无线具体话单回溯</a></li>
                                     </ul>
@@ -267,7 +267,7 @@
 									<thead></thead>
 									<tbody></tbody>
 								</table>
-								<div class="clear"></div>
+								<div class="clear"></div> -->
 							</div>
 							<!-- 投诉定位 -->
 							<div id="tab_comp_locate" class="col-md-12 tab-pane">
@@ -462,10 +462,22 @@
 										<i class="fa fa-wpforms" aria-hidden="true"></i>投诉用户XDR详单 <!-- <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="4" name="XdrDetailsForComplaints_">&nbsp;导出&nbsp;</a> -->
 									</p>
 								</blockquote>
-								<table id="data_ana_xdr" class="table table-responsive text-nowrap table-condensed table-bordered">
+								<div class="nav-tabs-custom" style="padding: 0px; margin-top: 0px;">
+                                   <ul class="nav nav-tabs bg-white nav-img">
+                                      <!-- <li><a class="text-primary"><i class="fa fa-file-text-o text-info" style="margin-right:5px;"></i>无线具体话单回溯</a></li> -->
+                                      <li class="active" style="margin-left: 12px;"><a onclick="specificOutputNew('http')" data-toggle="tab">http无线具体话单回溯</a></li>
+                                      <li><a data-toggle="tab" onclick="specificOutputNew('S1mme')">S1mme无线具体话单回溯</a></li>
+                                    </ul>
+                                </div>
+								<table id="confirm_cause_list" class="table table-responsive text-nowrap table-condensed table-bordered">
 									<thead></thead>
 									<tbody></tbody>
 								</table>
+								<div class="clear"></div>
+								<!-- <table id="data_ana_xdr" class="table table-responsive text-nowrap table-condensed table-bordered">
+									<thead></thead>
+									<tbody></tbody>
+								</table> -->
 								<blockquote>
 									<p>
 										<i class="fa fa-wpforms" aria-hidden="true"></i>无线质差小区指标<!--  <a href="javascript:;" class="btn btn-success btn-sm btn-export" key="5" name="OmcIndecateViaCells_">&nbsp;导出&nbsp;</a> -->

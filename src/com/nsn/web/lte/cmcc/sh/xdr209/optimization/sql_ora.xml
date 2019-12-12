@@ -225,58 +225,96 @@
 		FROM RPT_COMPLAIN_GRP_STATIC_H
 		WHERE (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
 		ORDER BY RANK_SCR_GRP -->
-		with tmp as (
-            select p_day dt,MSISDN,(nvl(poor_coverage_rt,0)+
-									nvl(dl_interfe_rt,0)+
-									nvl(ul_poor_sinr_rt,0)+
-									nvl(overlap_rt,0)+
-									nvl(uepoorphr_rt,0)+
-									nvl(cross_rt,0)+
-									nvl(prb_highusage_rt,0)+
-									nvl(prach_highusage_rt,0)+
-									nvl(pdcch_highusage_rt,0)+
-									nvl(high_conusers_rt,0))  deno 
-            from xdr_mr_day_IMSI  where p_day='${sdate}' and msisdn='${msisdn}'  and source_flag='${type}'
-        )
-        select DISTINCT a.dt SDATE,CASE
-						WHEN b.deno IS NULL THEN
-							0
-						WHEN b.deno = 0 THEN
-							0
-						ELSE
-							ROUND (A .grp_scr_ratio / b.deno, 4) * 100
-                         END grp_scr_ratio,a.msisdn,a.grp_name,a.grp_score from (
-            select p_day dt,  nvl(poor_coverage_rt,0)  grp_scr_ratio,MSISDN ,'弱覆盖'  GRP_NAME ,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_IMSI 
-           UNION
-                   select p_day dt,  nvl(dl_interfe_rt,0) grp_scr_ratio,MSISDN,'下行干扰'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-           UNION
-                   select p_day dt,  nvl(ul_poor_sinr_rt,0) grp_scr_ratio,MSISDN,'上行SINR'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-                   UNION
-                   select p_day dt,  nvl(overlap_rt,0) grp_scr_ratio,MSISDN,'重叠覆盖'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-                   UNION
-                   select p_day dt,  nvl(cross_rt,0) grp_scr_ratio,MSISDN,'越区覆盖'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-                   UNION
-                   select p_day  dt,  nvl(prb_highusage_rt,0) grp_scr_ratio,MSISDN,'PRB占用率过高'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-                   UNION
-                   select p_day dt,  nvl(prach_highusage_rt,0) grp_scr_ratio,MSISDN,'PRACH占用高'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-                   UNION
-                   select p_day dt,  nvl(pdcch_highusage_rt,0) grp_scr_ratio,MSISDN,'PDCCH占用高'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-                   UNION
-                   select p_day dt,  nvl(high_conusers_rt,0) grp_scr_ratio,MSISDN,'小区激活用户高'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi
-           UNION
-                   select p_day dt,  nvl(uepoorphr_rt,0) grp_scr_ratio,MSISDN,'上行功率余量低'  GRP_NAME,'0' GRP_SCORE,source_flag
-                   from xdr_mr_day_imsi) a  LEFT JOIN tmp b on a.dt =b.dt and a.msisdn=b.msisdn 
-           where a.dt='${sdate}' and a.msisdn='${msisdn}'  and a.source_flag='${type}'
-            ORDER BY grp_scr_ratio+0 desc
+    WITH tmp AS (
+	SELECT
+		p_day dt,
+    poor_coverage_rt, 
+		dl_interfe_rt,  
+		ul_poor_sinr_rt,  
+		overlap_rt,  
+		uepoorphr_rt, 
+		cross_rt,  
+		prb_highusage_rt, 
+		prach_highusage_rt, 
+		pdcch_highusage_rt, 
+		high_conusers_rt, 
+		alarm_ind_rt, 
+		nalarm_ind_rt, 
+		ul_interfe_ind_rt, 
+		mod3_interfe_ind_rt,
+		neigh_problem_ind_rt,
+		source_flag,
+		MSISDN,
+		(
+			NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
+		) deno
+		FROM
+			xdr_mr_day_IMSI
+		WHERE
+			p_day = '${sdate}'
+		AND msisdn = '${msisdn}'
+		AND source_flag = '${type}'
+	  ) 
+		SELECT DISTINCT
+			dt SDATE,
+			CASE
+		WHEN deno IS NULL THEN
+			0
+		WHEN deno = 0 THEN
+			0
+		ELSE
+			ROUND (grp_scr_ratio / deno, 4) * 100
+		END grp_scr_ratio,
+		 A .msisdn,
+		 A .grp_name,
+		 A .grp_score
+		FROM
+			(
+				SELECT dt,NVL (poor_coverage_rt, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,'0' GRP_SCORE,DENO 
+		FROM tmp
+				UNION
+		 select dt,  nvl(dl_interfe_rt,0) grp_scr_ratio,MSISDN,'下行干扰'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+		 UNION
+		 select dt,  nvl(ul_poor_sinr_rt,0) grp_scr_ratio,MSISDN,'上行SINR'  GRP_NAME,'0' GRP_SCORE,DENO
+		from tmp
+		 UNION
+		 select dt,  nvl(overlap_rt,0) grp_scr_ratio,MSISDN,'重叠覆盖'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp 
+		 UNION
+		 select dt,  nvl(cross_rt,0) grp_scr_ratio,MSISDN,'越区覆盖'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+		 UNION
+		 select dt,  nvl(prb_highusage_rt,0) grp_scr_ratio,MSISDN,'PRB占用率过高'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp 
+		 UNION
+		 select dt,  nvl(prach_highusage_rt,0) grp_scr_ratio,MSISDN,'PRACH占用高'  GRP_NAME,'0' GRP_SCORE,DENO
+		from tmp 
+		 UNION
+		 select dt,  nvl(pdcch_highusage_rt,0) grp_scr_ratio,MSISDN,'PDCCH占用高'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+		 UNION
+		 select dt,  nvl(high_conusers_rt,0) grp_scr_ratio,MSISDN,'小区激活用户高'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+			UNION
+		 select dt,  nvl(uepoorphr_rt,0) grp_scr_ratio,MSISDN,'上行功率余量低'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp 
+		UNION
+		 select dt,  nvl(alarm_ind_rt,0) grp_scr_ratio,MSISDN,'告警' GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp 
+		UNION
+		 select dt,  nvl(nalarm_ind_rt,0) grp_scr_ratio,MSISDN,'相关邻区告警'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+		UNION
+		 select dt,  nvl(ul_interfe_ind_rt,0) grp_scr_ratio,MSISDN,'上行干扰'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+		UNION
+		 select dt,  nvl(mod3_interfe_ind_rt,0) grp_scr_ratio,MSISDN,'Mod3干扰'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+		UNION
+		 select dt,  nvl(neigh_problem_ind_rt,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,'0' GRP_SCORE,DENO
+		 from tmp
+			) A ORDER BY grp_scr_ratio desc
 	</sql>
 	<!--用户2/4G网络图表呈现-->
 	<sql id="USER_24G_VIEW_LINE" type="ftl">

@@ -2408,7 +2408,7 @@ function diagnosticDelimitationNew() {
                  });
              });
          }
-         initPie('chart14', null, null, '', '%', piedata, function (e) {
+         initPie('chart14', null, null, '', null, piedata, function (e) {
          }, 'vertical', 'right', 100, 180);
      });
  }
@@ -3291,7 +3291,7 @@ function initPie(htmlid, width, size, title, serieName, data, callback, layout, 
             }
         },
         tooltip: {
-            pointFormat: '{series.name}:{point.percentage:.1f}%</b>',
+            pointFormat: '{point.percentage:.1f}%</b>',
             style: {
                 fontFamily: "微软雅黑"
             }

@@ -11,8 +11,7 @@ Import-Package: com.nsn.web.lte.cmcc.anhui.CustomerServiceSystem.controller,
 Require-Bundle: com.nsn.logger;bundle-version="1.0.0",
  com.nsn.web;bundle-version="1.0.0",
  com.nsn.web.lte;bundle-version="1.0.0",
- com.nsn.scheduler,
- com.nsn.web.lte.sys
+ com.nsn.scheduler
 Bundle-ClassPath: lib/activation-1.1.jar,
  lib/axis.jar,
  lib/commons-beanutils-1.9.3.jar,
