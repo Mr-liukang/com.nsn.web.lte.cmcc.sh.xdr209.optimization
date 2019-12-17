@@ -609,7 +609,7 @@
 			A.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
 			and b.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
 			AND A.MSISDN = '${msisdn}' -->
-			SELECT
+			SELECT DISTINCT
 			b.*
 			FROM
 			lte_xdr A
@@ -625,7 +625,7 @@
 	<sql id="DATA_ANALYSE_CELLWARN" type="ftl">
 		<!-- select * from V_COMPLAIN_PM_CELL_LIST where seq = ${seq} and sdate = trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
 			 -->
-	    SELECT
+	    SELECT DISTINCT
 			b.ALARM_DAY,
 			b.CELL_ID,
 			b.CELL_NAME,
@@ -639,6 +639,31 @@
 			b.CANCELTIME
 		FROM
 			lte_xdr a LEFT JOIN wxdw_alarm_day b on a.CELL_ID = b.CELL_ID 
+		WHERE
+		  A.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
+		 and b.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
+		 AND A.MSISDN = '${msisdn}'
+		  
+			 
+	 </sql>
+	 <sql id="DATA_ANALYSE_NEICELLWARN" type="ftl">
+		<!-- select * from V_COMPLAIN_PM_CELL_LIST where seq = ${seq} and sdate = trunc(to_date('${edate}','yyyy-mm-dd hh24:mi:ss'),'hh24')
+			 -->
+	    SELECT DISTINCT
+			b.ALARM_DAY,
+			b.CELL_ID,
+			b.CELL_NAME,
+			b.OMC_ALARM_ID,
+			b.OBJECT_CLASS,
+			b.ORG_SEVERITY,
+			b.ALARM_TITLE_TEXT,
+			b.PROBABLE_CAUSE_TXT,
+			b.EFFECTONBUSINESS,
+			b.EVENTTIME,
+			b.CANCELTIME,
+			b.NCELLID
+		FROM
+			lte_xdr a LEFT JOIN wxdw_nalarm_d b on a.CELL_ID = b.CELL_ID 
 		WHERE
 		  A.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
 		 and b.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')

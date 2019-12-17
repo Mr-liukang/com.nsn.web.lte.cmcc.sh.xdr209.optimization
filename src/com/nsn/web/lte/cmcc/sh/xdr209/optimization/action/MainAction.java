@@ -1089,7 +1089,7 @@ public class MainAction {
 				 String dwStr = "";
 				for(Map.Entry<String, Object> entry : columns.entrySet()){
 				    String mapKey = entry.getKey();
-				    System.out.println("执行一次");
+				   // System.out.println("执行一次");
 				  //  System.out.println(mapKey);
 				   
 				    if("p_day".equals(mapKey)||"cell_name".equals(mapKey)||"xdr_count".equals(mapKey)) {
@@ -1101,11 +1101,11 @@ public class MainAction {
 				    Double value = Double.parseDouble(entry.getValue().toString());
 				   
 				    //Double value =(double) entry.getValue();
-				    System.out.println("value"+value);
-			    	System.out.println("tmp"+tmp);
-			    	System.out.println(value.compareTo(tmp));
+				   // System.out.println("value"+value);
+			    //	System.out.println("tmp"+tmp);
+			    	//System.out.println(value.compareTo(tmp));
 				    if(value.compareTo(tmp)==1) {
-				    	System.out.println("进来了");
+				    	//System.out.println("进来了");
 				    	tmp = value;
 				    	if(mapKey.equals("poor_coverage_rt")) {
 				    		//re.set("dw", "弱覆盖");
@@ -1318,6 +1318,19 @@ public class MainAction {
 		List<Record> data = null;
 		try{
 			data = Db.query(SqlMap.get("DATA_ANALYSE_CELLWARN").parse(rc.params()));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		long endTime = new Date().getTime();
+		log.info("Method passCellWarningMsg() 数据分析-->经过小区告警信息 execution time:"+(endTime - startTime)+"ms");
+		return data;
+	}
+	//小区告警信息
+	public List<Record> passNeiCellWarningMsg(ReqContext rc) {
+		long startTime = new Date().getTime();
+		List<Record> data = null;
+		try{
+			data = Db.query(SqlMap.get("DATA_ANALYSE_NEICELLWARN").parse(rc.params()));
 		}catch(Exception e) {
 			e.printStackTrace();
 		}

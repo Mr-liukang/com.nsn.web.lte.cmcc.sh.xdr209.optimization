@@ -2051,6 +2051,7 @@ function query(type) {
         complainUserUemrDetailNew();
         passCellOmcIndexNew();
         passCellWarningMsgNew();
+        passNeiCellWarningMsgNew();
         //分开刷新的开关 1是全部刷新
         userclick = 1,localclick=1,dataclick=1;
        
@@ -2279,7 +2280,7 @@ function specificOutputNew(tab) {
                   		 }
                         }
                  },
-                 {"data":"ulsinr",sTitle:"ULSINR"},
+                 {"data":"ltescsinrul",sTitle:"ULSINR"},
                  {"data":"location_longitude",sTitle:"LOCATION_LONGITUDE"},
                  {"data":"location_latitude",sTitle:"LOCATION_LATITUDE"}
               ]
@@ -2853,6 +2854,39 @@ function passCellWarningMsgNew() {
          });
      });
  }
+function passNeiCellWarningMsgNew() {
+	 var imsi = $("#imsival").val().replace(/\s+/g, "");
+    var sdate = $("#sdate").val().replace(/-/g, "");
+    //$('#data_ana_cellwarn tbody').html("<tr><td colspan='5'>"+loader+"</td>");
+    $.post("/optimization/mainAction/passNeiCellWarningMsg", {"msisdn":imsi ,"sdate":sdate}, function (result, status, xhr) {
+        var columns = [];
+  
+        $('#data_ana_neicellwarn').DataTable({
+            "destroy": true,
+            "processing": false,
+            "bFilter": false,
+            "iDisplayLength": 15,
+            "bLengthChange": false,
+            "ordering": false,
+            "bAutoWidth": true,
+            "data": result,
+            "columns": [
+           	 {"data":"alarm_day",sTitle:"日期"},
+           	 {"data":"cell_id",sTitle:"小区ID"},
+           	 {"data":"cell_name",sTitle:"小区名称"},
+           	 {"data":"omc_alarm_id",sTitle:"告警流水号"},
+           	 {"data":"object_class",sTitle:"告警对象设备类型"},
+           	 {"data":"org_severity",sTitle:"告警级别"},
+           	 {"data":"alarm_title_text",sTitle:"告警标题"},
+           	 {"data":"probable_cause_txt",sTitle:"告警可能原因"},
+           	 {"data":"effectonbusiness",sTitle:"该事件对业务的影响"},
+           	 {"data":"eventtime",sTitle:"告警发生时间"},
+           	 {"data":"canceltime",sTitle:"告警清除时间"},
+           	 {"data":"ncellid",sTitle:"告警小区eci"}
+            ]
+        });
+    });
+}
 /**
  * 异常事件分布
  */
