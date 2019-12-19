@@ -1083,11 +1083,12 @@ public class MainAction {
 		try{
 			Map<String, Object> params = rc.params();
 			xdr = Db.query(SqlMap.get("LOCATE_XDR_PAGE").parse(params));
-			for(Record re : xdr) {
+/*			for(Record re : xdr) {
 				Map<String, Object> columns = re.getColumns();
 				Double tmp=new Double(-1);
 				 String dwStr = "";
 				for(Map.Entry<String, Object> entry : columns.entrySet()){
+					dwStr = "";
 				    String mapKey = entry.getKey();
 				   // System.out.println("执行一次");
 				  //  System.out.println(mapKey);
@@ -1140,7 +1141,7 @@ public class MainAction {
 				    		dwStr = "PRACH占用高";
 				    	}
 				    	if(mapKey.equals("pdcch_highusage_rt")) {
-				    		re.set("dw", "PDCCH占用高");
+				    		//re.set("dw", "PDCCH占用高");
 				    		dwStr = "PDCCH占用高";
 				    	}
 				    	if(mapKey.equals("high_conusers_rt")) {
@@ -1148,17 +1149,20 @@ public class MainAction {
 				    		dwStr = "小区激活用户高";
 				    	}
 				    	
-				    }
+				     }
 				    }catch(Exception e) {
+				    	//System.out.println("内层异常");
 				    	e.printStackTrace();
+				    	log.info("Method locateXdrDetail() 投诉定位-->内层异常 ");
 				    }
 				  //  System.out.println(mapKey+":"+mapValue);
 				}
 				re.set("dw", dwStr);
-			}
+			}*/
 			
 		}catch(Exception e) {
-			//e.printStackTrace();
+		   log.info("Method locateXdrDetail() 投诉定位-->外层异常 ");
+			
 		}
 		
 		log.info("Method locateXdrDetail() 投诉定位-->异常事件定位详情 : "+xdr);

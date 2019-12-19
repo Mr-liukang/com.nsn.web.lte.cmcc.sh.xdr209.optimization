@@ -2556,6 +2556,13 @@ function locateUser24GCellAbnormalEventNew(){
 	   //  console.log(sdate);
      $.post("/optimization/mainAction/locateXdrDetail", {"msisdn": imsi,"sdate":sdate}, function (result, status, xhr) {
          var columns = [];
+         var titleCol=["弱覆盖","下行干扰","上行SINR","重叠覆盖",
+        	          "越区覆盖","上行功率余量低","PRB占用率过高","PRACH占用高",
+        	          "PDCCH占用高","小区激活用户高","告警","相关邻区告警","上行干扰","Mod3干扰","邻区问题"];
+         var titleDataCol=["poor_coverage_rt","dl_interfe_rt","ul_poor_sinr_rt",     
+        	 "overlap_rt","cross_rt","uepoorphr_rt","prb_highusage_rt","prach_highusage_rt",  
+        	 "pdcch_highusage_rt","high_conusers_rt","alarm_ind_rt","nalarm_ind_rt",       
+        	 "ul_interfe_ind_rt","mod3_interfe_ind_rt","neigh_problem_ind_rt"];
          if(result){
             // $("#locate_xdr_table_div").html("<table id='locate_xdr_table' class='table table-responsive text-nowrap table-condensed table-bordered'><thead><tr><td></td></tr></thead><tbody><tr><td>暂无数据</td></tr></tbody></table><div class='clear'></div>");
              $('#locate_xdr_table').DataTable({
@@ -2569,14 +2576,35 @@ function locateUser24GCellAbnormalEventNew(){
                  "data": result,
                  "columns": [
                 	 {"data":"p_day",sTitle:"日期"},
-                	 {"data":"cell_name",sTitle:"小区名称",
-                		 render : function(data, type, row) {
-                            console.log(data);
-                            console.log(type);
-                            console.log(row);
-                			 return data;
-                         } },
-                      {"data":"dw",sTitle:"定位原因"},
+                	 {"data":"cell_name",sTitle:"小区名称"},
+                      {"data":"dw",sTitle:"定位原因",
+                    		 render : function(data, type, row) {
+                    			 var temp = -1 ;
+                    			/* for(var i=1;i<titleDataCol.length;i++){
+                    				 if(row.titleDataCol[i]>row.titleDataCol[temp]){
+                    					 temp =i ;
+                    				 }
+                    				}*/
+                    			 var strTmp ;
+                    			 $.each(row,function(key,values){
+                    				 console.log(temp);
+                    				 console.log(values);
+                    				  console.log($.inArray(key,titleDataCol));
+                    				  console.log(values>temp);
+                    				    if(values>temp && $.inArray(key,titleDataCol)>=0){
+                    				    	temp = values ;
+                    				    	strTmp =  key ;
+                    				    	 console.log(key);
+                    				    }
+                    				    
+                    				  });
+                                 console.log(strTmp);
+                               
+                                 console.log(type);
+                                 console.log(row);
+                                 console.log($.inArray(strTmp,titleDataCol));
+                     			 return titleCol[$.inArray(strTmp,titleDataCol)];
+                              } },
                 	 {"data":"xdr_count",sTitle:"无线原因质差单数"},
                 	 {"data":"poor_coverage_rt",sTitle:"弱覆盖(%)"},
                 	 {"data":"dl_interfe_rt",sTitle:"下行干扰(%)"},
@@ -2587,7 +2615,12 @@ function locateUser24GCellAbnormalEventNew(){
                 	 {"data":"prb_highusage_rt",sTitle:"PRB占用率过高(%)"},
                 	 {"data":"prach_highusage_rt",sTitle:"PRACH占用高(%)"},
                 	 {"data":"pdcch_highusage_rt",sTitle:"PDCCH占用高(%)"},
-                	 {"data":"high_conusers_rt",sTitle:"小区激活用户高(%)"}
+                	 {"data":"high_conusers_rt",sTitle:"小区激活用户高(%)"},
+                	 {"data":"alarm_ind_rt",sTitle:"告警(%)"},
+                	 {"data":"nalarm_ind_rt",sTitle:"相关邻区告警(%)"},
+                	 {"data":"ul_interfe_ind_rt",sTitle:"上行干扰(%)"},
+                	 {"data":"mod3_interfe_ind_rt",sTitle:"Mod3干扰(%)"},
+                	 {"data":"neigh_problem_ind_rt",sTitle:"邻区问题(%)"}
                  ]
              });
          }

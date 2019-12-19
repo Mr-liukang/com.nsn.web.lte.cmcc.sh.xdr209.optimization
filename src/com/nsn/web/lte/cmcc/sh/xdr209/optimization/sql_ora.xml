@@ -314,7 +314,7 @@
 		UNION
 		 select dt,  nvl(neigh_problem_ind_rt,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,'0' GRP_SCORE,DENO
 		 from tmp
-			) A ORDER BY grp_scr_ratio desc
+			) A where deno >0  ORDER BY grp_scr_ratio desc
 	</sql>
 	<!--用户2/4G网络图表呈现-->
 	<sql id="USER_24G_VIEW_LINE" type="ftl">
@@ -506,14 +506,20 @@
 					xdr_count,
 					ROUND(poor_coverage_rt,4)*100  poor_coverage_rt,
                     ROUND(dl_interfe_rt,4)*100 dl_interfe_rt,
-					ul_poor_sinr_rt,
-					overlap_rt,
-					cross_rt,
-					uepoorphr_rt,
-					prb_highusage_rt,
-					prach_highusage_rt,
-					pdcch_highusage_rt,
-					high_conusers_rt
+					ROUND(ul_poor_sinr_rt,4)*100 ul_poor_sinr_rt,
+					ROUND(overlap_rt,4)*100 overlap_rt,
+					ROUND(cross_rt,4)*100 cross_rt,
+					ROUND(uepoorphr_rt,4)*100 uepoorphr_rt,
+					ROUND(prb_highusage_rt,4)*100 prb_highusage_rt,
+					ROUND(prach_highusage_rt,4)*100 prach_highusage_rt,
+					ROUND(pdcch_highusage_rt,4)*100 pdcch_highusage_rt,
+					ROUND(high_conusers_rt,4)*100 high_conusers_rt,
+					ROUND(alarm_ind_rt,4)*100 alarm_ind_rt,
+					ROUND(nalarm_ind_rt,4)*100 nalarm_ind_rt,
+					ROUND(ul_interfe_ind_rt,4)*100 ul_interfe_ind_rt,
+					ROUND(mod3_interfe_ind_rt,4)*100 mod3_interfe_ind_rt,
+					ROUND(neigh_problem_ind_rt,4)*100 neigh_problem_ind_rt,
+					 '' dw
 				FROM
 					xdr_mr_day_ue_ci a LEFT JOIN TAS_MASTER.CFG_GIS_CELL_INFO b
                 on a.CELL_ID = b.CELL_ID
