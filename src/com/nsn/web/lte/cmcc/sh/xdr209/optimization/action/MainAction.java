@@ -896,7 +896,7 @@ public class MainAction {
 		Record mainCause = null;
 		try{
 			//mainCause = Db.read(SqlMap.get("COMP_LOCATE_MAINCAUSE").parse(rc.params()));
-		mainCause = Db.read(SqlMap.get("COMP_LOCATE_CATEGPRY").parse(params));
+		mainCause = Db.read(SqlMap.get("COMP_LOCATE_CATEGPRY_TEXT").parse(params));
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -904,6 +904,29 @@ public class MainAction {
 		log.info("Method diagnosisLocationMainCause() 投诉定位-->诊断定位主因 execution time:"+(endTime - startTime)+"ms");
 		return Ret.ok("data", mainCause);
 	}
+	// 诊断定位主因
+	/*public Ret diagnosisLocationMainCauseForText(ReqContext rc) {
+		long startTime = new Date().getTime();
+		  Map<String, Object> params = rc.params();
+		  String sdate = rc.param("sdate");
+			String msisdn = rc.param("msisdn");
+			String type = rc.param("type");
+			String sd = sdate.replaceAll("-", "");
+		//	System.out.println("异常事件 时间 sd "+sd);
+			params.put("sdate", sd);
+			params.put("msisdn",msisdn);
+			params.put("type", type);
+		Record mainCause = null;
+		try{
+			//mainCause = Db.read(SqlMap.get("COMP_LOCATE_MAINCAUSE").parse(rc.params()));
+		mainCause = Db.read(SqlMap.get("COMP_LOCATE_CATEGPRY_TEXT").parse(params));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		long endTime = new Date().getTime();
+		log.info("Method diagnosisLocationMainCauseForText() 投诉定位-->诊断定位主因 execution time:"+(endTime - startTime)+"ms");
+		return Ret.ok("data", mainCause);
+	}*/
 	//定位分类-表格
 	public Page<Record> locateCategoryTable(ReqContext rc) {
 		long startTime = new Date().getTime();

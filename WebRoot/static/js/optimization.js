@@ -2301,7 +2301,7 @@ function diagnosticDelimitationNew() {
      sdate = sdate+' 00:00:00';
      
 	 $("#detail-info-panel").show();
-     $.post("http://127.0.0.1:8080/css/customer/secondline", 
+     $.post("http://10.243.165.93:9080/css/customer/secondline", 
     		 {"phone":imsi ,"sdate":sdate,"edate":edate,module: "0"}, function (res) {
     	 //$.post("/optimization/mainAction/diagnosticDelimitation", {"imsi":imsi ,"sdate":sdate}, function (res) {
        // console.log(res);
