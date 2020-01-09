@@ -2071,7 +2071,8 @@ function specificOutputNew(tab) {
 	// console.log(tab);
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
      var sdate = $("#sdate").val();
-    $('#confirm_cause_list tbody').html("<tr><td colspan='10'>"+loader+"</td>");
+  
+    
     $.post("/optimization/mainAction/specificOutput", {"imsi": imsi,"sdate":sdate,"type":tab}, function (result) {
        var columns = [];
        /*
@@ -2082,50 +2083,83 @@ function specificOutputNew(tab) {
                 columns.push({title: k, data: k});
             });
         }*/
-       $('#confirm_cause_list').html("");
+     //  $('#confirm_cause_list').html("");
+       $('#confirm_cause_list tbody').html("<tr><td colspan='8'>"+loader+"</td>");
 	    if ($('#confirm_cause_list').hasClass('dataTable')) {
 	        var dttable = $('#confirm_cause_list').dataTable();
-	       // dttable.fnClearTable(); //清空一下table
-	      //  dttable.fnDestroy(); //还原初始化了的datatable
-	        //dttable.Clear();
+	        dttable.fnClearTable(); //清空一下table
+	        dttable.fnDestroy(); //还原初始化了的datatable
+	       // dttable.Clear();
 	       // dttable.Dispose();
+	       
 	    }
+    //   httpMap: {'cell_name':'占用小区','app_name':'业务类型','app_sub_name':'业务APP','start_time':'业务开始时间','end_time':'业务结束时间',"abnormal_sort":"质差原因（增加）",'wireless_postion_result':'定位原因'},
+      // cdrExceptMap: {'ci_name':'占用小区','type':'事件类型','status':'事件状态','begin_time':'事件开始时间','end_time':'事件结束时间','cause':'定位原因'},
+       
         if(tab=='http'){
+        	$('#confirm_cause_list thead').html("<tr><th>占用小区</th><th>业务类型</th><th>业务app</th>"
+        			+"<th>业务开始时间</th><th>业务结束时间</th><th>质差原因（增加）</th><th>定位原因</th>"+
+        			"<th>测量电平</th><th>测量上行sinr</th></tr>");
+        	//  $('#confirm_cause_list tbody').html("<tr><td colspan='10'>"+loader+"</td>");
         	//console.log('进入了http');
         	 $('#confirm_cause_list').DataTable({
-                 "bDestroy": true,
-                 "processing": false,
+                 //"bDestroy": true,
+                // "processing": false,
                  "bFilter": false,
                  "iDisplayLength": 10,
-                 "bPaginage": true,
+                 //"bPaginage": true,
                  "bLengthChange": false,
-                 "bSort": false,
-                 "bAutoWidth": true,
-                 "data": result, 
+                 "ordering": false,
+               //  "bSort": false,
+               //  "bAutoWidth": true,
+                  "data": result, 
                  //"columns": columns
                  "columns": [
-                 	{data:"cell_name",sTitle:"占用小区"},
-                 	{data:"app_name",sTitle:"业务类型"},
-                 	{data:"app_sub_name",sTitle:"业务app"},
-                 	{data:"start_time",sTitle:"业务开始时间"},
-                 	{data:"end_time",sTitle:"业务结束时间"},
-                 	{data:"abnormal_sort",sTitle:"质差原因（增加）"},
-                 	{data:"wireless_postion_result",sTitle:"定位原因"},
-                 	{data:"rsrp",sTitle:"测量电平"},
-                 	{data:"ulsinr",sTitle:"测量上行sinr"}
+                 	{data:"cell_name"},
+                 	{data:"app_name"},
+                 	{data:"app_sub_name"},
+                 	{data:"start_time"},
+                 	{data:"end_time"},
+                 	{data:"abnormal_sort"},
+                 	{data:"wireless_postion_result"},
+                 	{data:"rsrp",
+                     	 render : function(data, type, row) {
+                      		 
+                       		if(data!=null&&data!=''){ 
+                       		 var  c=parseFloat(data);
+                       		 return (c-140);
+                       		 }else{
+                       			 return data;
+                       		 }
+                              }},
+               	  {data:"ulsinr",
+                  	 render : function(data, type, row) {
+                  		 
+                  		if(data!=null&&data!=''){ 
+                  		 var  c=parseFloat(data);
+                  		 return (c-11);
+                  		 }else{
+                  			 return data;
+                  		 }
+                        }}
                  ]
              });
         }else{
+        	$('#confirm_cause_list thead').html("<tr><th>占用小区</th><th>事件类型</th><th>事件状态</th>"
+        			+"<th>业务开始时间</th><th>业务结束时间</th><th>定位原因</th>"+
+        			"<th>测量电平</th><th>测量上行sinr</th></tr>");
+        //	$('#confirm_cause_list tbody').html("<tr><td colspan='9'>"+loader+"</td>");
         	//console.log('进入了S1mee');
         	$('#confirm_cause_list').DataTable({
-                "bDestroy": true,
-                "processing": false,
+               // "bDestroy": true,
+               // "processing": false,
                 "bFilter": false,
                 "iDisplayLength": 10,
-                "bPaginage": true,
+               // "bPaginage": true,
                 "bLengthChange": false,
-                "bSort": false,
-                "bAutoWidth": true,
+                "ordering": false,
+               // "bSort": false,
+              //  "bAutoWidth": true,
                 "data": result, 
                 //"columns": columns
                 "columns": [
@@ -2134,9 +2168,28 @@ function specificOutputNew(tab) {
                 	{data:"status",sTitle:"事件状态"},
                 	{data:"start_time",sTitle:"业务开始时间"},
                 	{data:"end_time",sTitle:"业务结束时间"},
+                	//{data:"abnormal_sort",sTitle:"质差原因(增加)"},
                 	{data:"wireless_postion_result",sTitle:"定位原因"},
-                	{data:"rsrp",sTitle:"测量电平"},
-                	{data:"ulsinr",sTitle:"测量上行sinr"}
+                	{data:"rsrp",
+                      	 render : function(data, type, row) {
+                       		 
+                        		if(data!=null&&data!=''){ 
+                        		 var  c=parseFloat(data);
+                        		 return (c-140);
+                        		 }else{
+                        			 return data;
+                        		 }
+                              }},
+                	{data:"ulsinr",
+                   	 render : function(data, type, row) {
+                   		 
+                   		if(data!=null&&data!=''){ 
+                   		 var  c=parseFloat(data);
+                   		 return (c-11);
+                   		 }else{
+                   			 return data;
+                   		 }
+                         }}
                 ]
             });
         }
