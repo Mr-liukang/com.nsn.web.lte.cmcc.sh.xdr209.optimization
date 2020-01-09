@@ -2085,8 +2085,10 @@ function specificOutputNew(tab) {
        $('#confirm_cause_list').html("");
 	    if ($('#confirm_cause_list').hasClass('dataTable')) {
 	        var dttable = $('#confirm_cause_list').dataTable();
-	        dttable.fnClearTable(); //清空一下table
-	        dttable.fnDestroy(); //还原初始化了的datatable
+	       // dttable.fnClearTable(); //清空一下table
+	      //  dttable.fnDestroy(); //还原初始化了的datatable
+	        //dttable.Clear();
+	       // dttable.Dispose();
 	    }
         if(tab=='http'){
         	//console.log('进入了http');
@@ -2599,9 +2601,12 @@ function locateUser24GCellAbnormalEventNew(){
                     				    
                     				  });
                                  console.log(strTmp);
-                               
+                                 console.log(temp);
                                  console.log(type);
                                  console.log(row);
+                                 if(temp==0){
+                                	 return "";
+                                 }
                                  console.log($.inArray(strTmp,titleDataCol));
                      			 return titleCol[$.inArray(strTmp,titleDataCol)];
                               } },
