@@ -885,14 +885,14 @@ public class MainAction {
 	public Ret diagnosisLocationMainCause(ReqContext rc) {
 		long startTime = new Date().getTime();
 		  Map<String, Object> params = rc.params();
-		  String sdate = rc.param("sdate");
+		 /* String sdate = rc.param("sdate");
 			String msisdn = rc.param("msisdn");
 			String type = rc.param("type");
 			String sd = sdate.replaceAll("-", "");
 		//	System.out.println("异常事件 时间 sd "+sd);
 			params.put("sdate", sd);
 			params.put("msisdn",msisdn);
-			params.put("type", type);
+			params.put("type", type);*/
 		Record mainCause = null;
 		try{
 			//mainCause = Db.read(SqlMap.get("COMP_LOCATE_MAINCAUSE").parse(rc.params()));
@@ -930,7 +930,7 @@ public class MainAction {
 	//定位分类-表格
 	public Page<Record> locateCategoryTable(ReqContext rc) {
 		long startTime = new Date().getTime();
-        Map<String, Object> params = rc.params();
+      /*  Map<String, Object> params = rc.params();
 		String sdate = rc.param("sdate");
 		String msisdn = rc.param("msisdn");
 		String type = rc.param("type");
@@ -938,11 +938,11 @@ public class MainAction {
 	//	System.out.println("异常事件 时间 sd "+sd);
 		params.put("sdate", sd);
 		params.put("msisdn",msisdn);
-		params.put("type", type);
+		params.put("type", type);*/
 		Page<Record> data = null;
 		try{
 			Page<?> pageParam = rc.page();
-			//Map<String, Object> params = rc.params();
+			Map<String, Object> params = rc.params();
 			data =  Db.page(SqlMap.get("COMP_LOCATE_CATEGPRY").parse(params), pageParam);
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -1073,7 +1073,7 @@ public class MainAction {
 		log.info("Method locateUser24GCellTravel() 投诉定位-->用户2/4G网络图表呈现（异常小区轨迹图） execution time:"+(endTime - startTime)+"ms");
 		return Ret.ok("data", res);
 	}
-	//用户2/4G网络图表呈现（单个小区的异常事件查询）
+	//用户2/4G网络图表呈现（单个小区的异常事件查询） 地图右侧
 	public List<Record> locateUser24GCellAbnormalEvent(ReqContext rc) {
 		long startTime = new Date().getTime();
 		List<Record> detail = null;

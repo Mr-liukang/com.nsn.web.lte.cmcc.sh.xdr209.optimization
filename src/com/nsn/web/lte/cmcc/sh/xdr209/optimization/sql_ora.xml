@@ -173,7 +173,7 @@
 		AND a.SDATE >= (SELECT TRUNC(START_TIME, 'HH24') sdate FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
 		) c
 	</sql>
-
+    <!-- 异常事件分布 -->
 	<sql id="CONFIRM_CAUSE_LINE" type="ftl">
 		<!-- select to_char(procedure_start_time,'yyyy/mm/dd hh24') shour,event_name,count(eventlab_flag) nums
 		from rpt_complain_excp_pre_a_h a
@@ -181,11 +181,11 @@
 		where (seq,sdate) in (select seq,trunc(end_time,'hh24') from rpt_complaint_imsi_list where seq=${seq})
 		and eventlab_flag is not null
 		group by to_char(procedure_start_time,'yyyy/mm/dd hh24'),event_name
-		order by SHOUR ASC,nums desc -->
+		order by SHOUR ASC,nums desc  WHERE shour LIKE '${sdate}%' AND msisdn = '${msisdn}'  -->
 			WITH tmp AS (
 						SELECT * FROM  wxdw_result_h
 						WHERE sdate BETWEEN TO_DATE('${sdate}' || '000000','yyyymmddhh24miss')
-						AND TO_DATE ('${sdate}' || '235959','yyyymmddhh24miss') AND msisdn = '${msisdn}'
+						AND TO_DATE ('${edate}' || '235959','yyyymmddhh24miss') AND msisdn = '${msisdn}'
 					)
 		 SELECT shour,event_name,nums
 		 FROM
@@ -203,7 +203,7 @@
 			SELECT dt shour,'dns质差话单' event_name,dns_delay_count nums,msisdn FROM tmp
 			UNION
 			SELECT dt shour,'页面下载速率感知差话单' event_name,page_throughput_count nums,msisdn FROM tmp
-			) A WHERE shour LIKE '${sdate}%' AND msisdn = '${msisdn}' ORDER BY shour
+			) A ORDER BY shour
 		
 	</sql>
 
@@ -227,34 +227,35 @@
 		ORDER BY RANK_SCR_GRP -->
     WITH tmp AS (
 	SELECT
-		p_day dt,
-    poor_coverage_rt, 
-		dl_interfe_rt,  
-		ul_poor_sinr_rt,  
-		overlap_rt,  
-		uepoorphr_rt, 
-		cross_rt,  
-		prb_highusage_rt, 
-		prach_highusage_rt, 
-		pdcch_highusage_rt, 
-		high_conusers_rt, 
-		alarm_ind_rt, 
-		nalarm_ind_rt, 
-		ul_interfe_ind_rt, 
-		mod3_interfe_ind_rt,
-		neigh_problem_ind_rt,
-		source_flag,
-		MSISDN,
-		(
-			NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
-		) deno
+		${sdate}||'-'||${edate} dt,
+        sum(poor_coverage_rt) poor_coverage_rt, 
+	    sum(dl_interfe_rt) dl_interfe_rt,  
+	    sum(ul_poor_sinr_rt) ul_poor_sinr_rt,  
+	    sum(overlap_rt) overlap_rt,  
+	    sum(uepoorphr_rt) uepoorphr_rt, 
+	    sum(cross_rt) cross_rt,  
+	    sum(prb_highusage_rt) prb_highusage_rt, 
+	    sum(prach_highusage_rt) prach_highusage_rt, 
+	    sum(pdcch_highusage_rt) pdcch_highusage_rt, 
+	    sum(high_conusers_rt) high_conusers_rt, 
+	    sum(alarm_ind_rt) alarm_ind_rt, 
+	    sum(nalarm_ind_rt) nalarm_ind_rt, 
+	    sum(ul_interfe_ind_rt) ul_interfe_ind_rt, 
+	    sum(mod3_interfe_ind_rt) mod3_interfe_ind_rt,
+	    sum(neigh_problem_ind_rt) neigh_problem_ind_rt,
+	   -- sum(source_flag),
+	    MSISDN,
+	    (
+	      sum(NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
+	    )) deno
 		FROM
 			xdr_mr_day_IMSI
 		WHERE
 			<!-- p_day = '${sdate}' -->
-			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
+			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
 		AND msisdn = '${msisdn}'
 		AND source_flag = '${type}'
+		GROUP BY msisdn
 	  ) 
 		SELECT DISTINCT
 			dt SDATE,
@@ -321,35 +322,37 @@
 		
     WITH tmp AS (
 	SELECT
-		p_day dt,
-    poor_coverage_rt, 
-		dl_interfe_rt,  
-		ul_poor_sinr_rt,  
-		overlap_rt,  
-		uepoorphr_rt, 
-		cross_rt,  
-		prb_highusage_rt, 
-		prach_highusage_rt, 
-		pdcch_highusage_rt, 
-		high_conusers_rt, 
-		alarm_ind_rt, 
-		nalarm_ind_rt, 
-		ul_interfe_ind_rt, 
-		mod3_interfe_ind_rt,
-		neigh_problem_ind_rt,
-		source_flag,
-		MSISDN,
-		(
-			NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
-		) deno
+			SELECT
+		${sdate}||'-'||${edate} dt,
+        sum(poor_coverage_rt) poor_coverage_rt, 
+	    sum(dl_interfe_rt) dl_interfe_rt,  
+	    sum(ul_poor_sinr_rt) ul_poor_sinr_rt,  
+	    sum(overlap_rt) overlap_rt,  
+	    sum(uepoorphr_rt) uepoorphr_rt, 
+	    sum(cross_rt) cross_rt,  
+	    sum(prb_highusage_rt) prb_highusage_rt, 
+	    sum(prach_highusage_rt) prach_highusage_rt, 
+	    sum(pdcch_highusage_rt) pdcch_highusage_rt, 
+	    sum(high_conusers_rt) high_conusers_rt, 
+	    sum(alarm_ind_rt) alarm_ind_rt, 
+	    sum(nalarm_ind_rt) nalarm_ind_rt, 
+	    sum(ul_interfe_ind_rt) ul_interfe_ind_rt, 
+	    sum(mod3_interfe_ind_rt) mod3_interfe_ind_rt,
+	    sum(neigh_problem_ind_rt) neigh_problem_ind_rt,
+	   -- sum(source_flag),
+	    MSISDN,
+	    (
+	      sum(NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
+	    )) deno
 		FROM
 			xdr_mr_day_IMSI
 		WHERE
 			<!-- p_day = '${sdate}' -->
-			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
+			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
 		AND msisdn = '${msisdn}'
-	
-	  ) 
+		AND source_flag = '${type}'
+		GROUP BY msisdn
+        ) 
 		SELECT DISTINCT
 			dt SDATE,
 			CASE
@@ -459,45 +462,7 @@
 	</sql>
 	<!-- 地图渲染 用户轨迹(小区异常事件汇总+小区驻留时长) -->
 	<sql id="USER_24G_CELL_ABNORMAL_EVENT_COUNT_AND_HOLD_TIME" type="ftl">
-        <!-- SELECT  a.eci
-		,a.enb_id
-		,a.cellid cell_id
-		,a.enb_id ||'-'|| a.cellid enb_cell
-		,a.cell_name
-		,a.band
-		,a.freq
-		,a.net_flag||'G网络' net_of_stay
-		,SUM(a.sum_xdr_bd_counts) sum_xdr_bd_counts
-		,ROUND(RATIO_TO_REPORT(SUM(a.sum_xdr_bd_counts) ) OVER(PARTITION BY SEQ)*100,2) top_rank_of_xdr
-		,ROUND(AVG(a.avg_rsrp),2) avg_rsrp
-		,ROUND(AVG(a.avg_rsrq),2) avg_rsrq
-		,ROUND(AVG(a.avg_phr),2) avg_phr
-		,ROUND(AVG(a.avg_received_power),2) avg_received_power
-		,ROUND(AVG(a.avg_distance*78),2) avg_distance
-		,SUM(a.length_of_stay) length_of_stay
-		,ROUND(RATIO_TO_REPORT(SUM(a.length_of_stay) ) OVER(PARTITION BY SEQ)*100,2) top_rank_of_stay
-		,a.longitude
-		,a.latitude
-		,a.beam
-		,a.dir
-		,a.dis radius
-		,to_number(a.opacity) opacity
-		,a.seq
-		FROM ( SELECT * FROM rpt_complain_net_avg_h a WHERE (a.seq,a.sdate) IN (SELECT seq,trunc(end_time,'HH24') FROM rpt_complaint_imsi_list WHERE seq IN (${seq})) ) a
-		WHERE  a.eci in (
-		SELECT distinct a.eci
-		FROM ( SELECT distinct trunc(to_date(entry_time,'YYYY-MM-DD HH24:MI:SS'),'hh24') hour,eci FROM rpt_complain_net_avg_h WHERE (seq,sdate) IN (SELECT seq,trunc(end_time,'HH24') FROM rpt_complaint_imsi_list WHERE seq IN (${seq}))  )  a
-		LEFT JOIN (  SELECT * FROM rpt_complain_available_h WHERE (seq,sdate) IN (SELECT seq,trunc(end_time,'HH24') FROM rpt_complaint_imsi_list WHERE seq IN (${seq}))
-		AND SUM_CTS=(SELECT MAX(SUM_CTS) FROM RPT_COMPLAIN_TMP_AVAILABLE_H WHERE SEQ=${seq})  ) b
-		ON a.hour=b.hour
-		LEFT JOIN (select * from rpt_complain_filtercell_list where seq=${seq}) c
-		ON a.eci=c.eci
-		LEFT JOIN cfg_complain_sh_cell d
-		ON a.eci=d.eci
-		WHERE (b.hour is not null AND a.eci is not null) and (c.eci is not null or d.eci is null)
-		)
-		GROUP BY a.eci,a.enb_id,a.cellid,a.cell_name,a.band,a.freq,a.net_flag,a.longitude,a.latitude,a.beam,a.dir,a.dis,a.opacity,a.seq -->
-			 SELECT
+            <!-- SELECT
 				A .ecgi eci,
 				A .UNUSUAL_COUNT top_rank_of_xdr,
 				b.CELL_NAME,
@@ -513,9 +478,25 @@
 			WHERE
 				a.MSISDN = '${msisdn}' 
 				and 
-				<!-- to_char(a.SDATE,'yyyymmdd') = '${sdate}' -->
-				A.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
-			ORDER BY A.UNUSUAL_COUNT DESC 
+				to_char(a.SDATE,'yyyymmdd') = '${sdate}'
+				A.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
+			ORDER BY A.UNUSUAL_COUNT DESC  -->
+			
+			select 
+			        A .ecgi ,
+			        A .top_rank_of_xdr,
+			        b.CELL_NAME,
+			        b.longitude,
+			        b.latitude,
+			        b.radius,
+			        b.BEAMWIDTH beam,
+			        b.CELL_ID,
+			        b.AZIMUTH dir
+			from 
+			 (select ecgi,sum(UNUSUAL_COUNT) top_rank_of_xdr 
+			from wxdw_result_day where MSISDN = '${msisdn}'  and 
+			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
+			      group by ecgi) A LEFT JOIN TAS_MASTER.CFG_GIS_CELL_INFO b ON A.ECGI = b.CELL_ID
 	</sql>
 	<!--用户2/4G网络单个小区异常事件-->
 	<sql id="USER_24G_ONE_CELL_ABNORMAL_EVENT" type="ftl">
@@ -550,7 +531,7 @@
 			LEFT JOIN TAS_MASTER.CFG_GIS_CELL_INFO c on A.ecgi =c.cell_id
 			WHERE
 				A.msisdn = '${msisdn}'
-			AND A.RES_DAY = '${sdate}'
+			AND a.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
 			order by A.unusual_count desc
 	</sql>
 	<!--用户2/4G网络小区某一异常事件详情-->

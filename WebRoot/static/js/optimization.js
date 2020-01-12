@@ -2013,7 +2013,10 @@ function query(type) {
     //单用户查询
     if (type == 0) {
         var imsi = $("#imsival").val().replace(/\s+/g, "");
-        var sdate = $("#sdate").val();
+       // var sdate = $("#sdate").val();
+       // var curTime = new Date($("#sdate").val());
+        var sdate = getMyDate($("#sdate").val());
+        var edate = $("#sdate").val().replace(/-/g, "");;
         var stime = $("#timeVars").val();
         if (imsi.length == 0) {
             layer.alert("请输入正确的手机号或IMSI");
@@ -2038,7 +2041,7 @@ function query(type) {
         var pre_lonlat = $("#pre_lonlat").val();
        // 用户分析
         diagnosticDelimitationNew();
-        abnormalEventsNew(imsi,sdate);
+        abnormalEventsNew(imsi,sdate,edate);
         specificOutputNew('http');
         //投诉定位
         locateCategoryTableNew('1');
@@ -2199,8 +2202,9 @@ function specificOutputNew(tab) {
 //用户2/4G网络图表呈现（异常小区轨迹图）
  function locateUser24GAbnormalCellTravel(){
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val().replace(/-/g, "");
-    $.post("/optimization/mainAction/locateUser24GAbnormalCellTravel", {"msisdn":imsi ,"sdate":sdate}, function (res, status, xhr) {
+     var edate = $("#sdate").val().replace(/-/g, "");
+     var sdate = getMyDate($("#sdate").val());
+    $.post("/optimization/mainAction/locateUser24GAbnormalCellTravel", {"msisdn":imsi ,"sdate":sdate,"edate":edate}, function (res, status, xhr) {
         var gis_cell = res.data.gis_cell;
         console.log(res.data);
         var gis_cell_count = res.data.gis_cell_count;
@@ -2397,7 +2401,10 @@ function diagnosticDelimitationNew() {
 //定位分类-表格
  function  locateCategoryTableNew(cate) {
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val();
+    // var sdate = $("#sdate").val();
+     var edate = $("#sdate").val().replace(/-/g, "");
+     var sdate = getMyDate($("#sdate").val());
+     console.log(sdate);
     $("#locate_main_cause tbody").html("<tr><td colspan='4'>"+loader+"</td>");
     
    /* if ($('#locate_category_list').hasClass('dataTable')) {
@@ -2416,7 +2423,7 @@ function diagnosticDelimitationNew() {
         "ajax": {
             "url": "/optimization/mainAction/locateCategoryTable",
             "data": function (d) {
-                return $.extend({}, d, {"msisdn":imsi,"sdate":sdate,"type":cate});
+                return $.extend({}, d, {"msisdn":imsi,"sdate":sdate,"edate":edate,"type":cate});
             },
             "error": function (xhr, textStatus, error) {
                 console.log(error);
@@ -2431,14 +2438,14 @@ function diagnosticDelimitationNew() {
         ]
     });
     locationCategoryPie(imsi,sdate,cate);
-    diagnosisLocationMainCauseNew(imsi,sdate,cate);
+    diagnosisLocationMainCauseNew(imsi,sdate,edate,cate);
 }
  /**
   * 定位分析
   */
  function diagnosisLocationMainCauseNew(msisdn,sdate,type){
      $("#locate_main_cause").html(loader);
-     $.post("/optimization/mainAction/diagnosisLocationMainCause", {"msisdn":msisdn,"sdate":sdate,"type":type}, function (res) {
+     $.post("/optimization/mainAction/diagnosisLocationMainCause", {"msisdn":msisdn,"sdate":sdate,"edate":edate,"type":type}, function (res) {
          var main_cause = res.data;
        //  console.log(res);
         // console.log(main_cause);
@@ -2577,13 +2584,15 @@ function diagnosticDelimitationNew() {
          eventLine = initLines("chart14_1", 'USER 4G NET FLAG', cates, series, tics, false, yAxises, 30, $page.locateView.lineClickToTravel);
      });
  }
- //用户2/4G网络图表呈现（单个小区的异常事件查询）
+ //用户2/4G网络图表呈现（单个小区的异常事件查询） 地图右侧
 function locateUser24GCellAbnormalEventNew(){
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val().replace(/-/g, "");
+    // var sdate = $("#sdate").val().replace(/-/g, "");
+     var edate = $("#sdate").val().replace(/-/g, "");
+     var sdate = getMyDate($("#sdate").val())
     
     // $("#user_24g_view_event_table tbody").html("<tr><td colspan='8'>"+loader+"</td>");
-     $.post("/optimization/mainAction/locateUser24GCellAbnormalEvent", {"msisdn": imsi, "sdate": sdate}, function (result, status, xhr) {
+     $.post("/optimization/mainAction/locateUser24GCellAbnormalEvent", {"msisdn": imsi, "sdate": sdate,"edate":edate}, function (result, status, xhr) {
         $('#user_24g_view_event_table').DataTable({
          "destroy": true,
          "processing": false,
@@ -2979,12 +2988,12 @@ function passNeiCellWarningMsgNew() {
     });
 }
 /**
- * 异常事件分布
+ * 异常事件分布01
  */
 
-function abnormalEventsNew(msisdn,sdate){
+function abnormalEventsNew(msisdn,sdate,edate){
    // $('#chart16').html(loader);
-    $.post("/optimization/mainAction/abnormalEvents", {"msisdn":msisdn,"sdate":sdate}, function (res) {
+    $.post("/optimization/mainAction/abnormalEvents", {"msisdn":msisdn,"sdate":sdate,"edate":edate}, function (res) {
         var cause_line = res.data;
         var cates = [];
         var tempY = [];
@@ -3019,6 +3028,27 @@ function abnormalEventsNew(msisdn,sdate){
         }
         eventLine = initLines("chart16", '异常事件分布', tmpCates, series, 1, true, null, 0, null);
     });
+}
+function getMyDate(curTime){  
+	console.log(curTime);
+	var curTimeDate = new Date(curTime);
+	var str = curTimeDate.setDate(curTimeDate.getDate()-2) ;
+   var oDate = new Date(str),  
+   oYear = oDate.getFullYear(),  
+   oMonth = oDate.getMonth()+1,  
+   oDay = oDate.getDate(),  
+   oHour = oDate.getHours(),  
+   oMin = oDate.getMinutes(),  
+   oSen = oDate.getSeconds(),  
+   oTime = oYear +''+ getzf(oMonth) +''+ getzf(oDay)+'' ;//最后拼接时间  
+   return oTime;  
+} 
+//补0操作
+function getzf(num){  
+	 if(parseInt(num) < 10){  
+	     num = '0'+num;  
+	 }  
+	 return num;  
 }
 function reQueryOrder() {
     var $table = $('#orderno_imsi_list').DataTable();
