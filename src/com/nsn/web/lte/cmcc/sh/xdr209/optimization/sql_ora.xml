@@ -221,100 +221,7 @@
 		SELECT * FROM V_COMPLAIN_PRO_NEW_CONCLUSION WHERE (SEQ,SDATE) IN (SELECT seq,TRUNC(end_time,'hh24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
 	</sql>
 	<sql id="COMP_LOCATE_CATEGPRY" type="ftl">
-	
-<!--     WITH tmp AS (
-	SELECT
-		${sdate}||'-'||${edate} dt,
-        sum(poor_coverage_rt) poor_coverage_rt, 
-	    sum(dl_interfe_rt) dl_interfe_rt,  
-	    sum(ul_poor_sinr_rt) ul_poor_sinr_rt,  
-	    sum(overlap_rt) overlap_rt,  
-	    sum(uepoorphr_rt) uepoorphr_rt, 
-	    sum(cross_rt) cross_rt,  
-	    sum(prb_highusage_rt) prb_highusage_rt, 
-	    sum(prach_highusage_rt) prach_highusage_rt, 
-	    sum(pdcch_highusage_rt) pdcch_highusage_rt, 
-	    sum(high_conusers_rt) high_conusers_rt, 
-	    sum(alarm_ind_rt) alarm_ind_rt, 
-	    sum(nalarm_ind_rt) nalarm_ind_rt, 
-	    sum(ul_interfe_ind_rt) ul_interfe_ind_rt, 
-	    sum(mod3_interfe_ind_rt) mod3_interfe_ind_rt,
-	    sum(neigh_problem_ind_rt) neigh_problem_ind_rt,
-	    sum(source_flag),
-	    MSISDN,
-	    (
-	      sum(NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
-	    )) deno
-		FROM
-			xdr_mr_day_IMSI
-		WHERE
-			p_day = '${sdate}'
-			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
-		AND msisdn = '${msisdn}'
-		AND source_flag = '${type}'
-		GROUP BY msisdn
-	  ) 
-		SELECT DISTINCT
-			dt SDATE,
-			CASE
-		WHEN deno IS NULL THEN
-			0
-		WHEN deno = 0 THEN
-			0
-		ELSE
-			ROUND (grp_scr_ratio / deno, 4) * 100
-		END grp_scr_ratio,
-		 A .msisdn,
-		 A .grp_name,
-		 A .grp_score
-		FROM
-			(
-				SELECT dt,NVL (poor_coverage_rt, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,'0' GRP_SCORE,DENO 
-		FROM tmp
-				UNION
-		 select dt,  nvl(dl_interfe_rt,0) grp_scr_ratio,MSISDN,'下行干扰'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-		 UNION
-		 select dt,  nvl(ul_poor_sinr_rt,0) grp_scr_ratio,MSISDN,'上行SINR'  GRP_NAME,'0' GRP_SCORE,DENO
-		from tmp
-		 UNION
-		 select dt,  nvl(overlap_rt,0) grp_scr_ratio,MSISDN,'重叠覆盖'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp 
-		 UNION
-		 select dt,  nvl(cross_rt,0) grp_scr_ratio,MSISDN,'越区覆盖'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-		 UNION
-		 select dt,  nvl(prb_highusage_rt,0) grp_scr_ratio,MSISDN,'PRB占用率过高'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp 
-		 UNION
-		 select dt,  nvl(prach_highusage_rt,0) grp_scr_ratio,MSISDN,'PRACH占用高'  GRP_NAME,'0' GRP_SCORE,DENO
-		from tmp 
-		 UNION
-		 select dt,  nvl(pdcch_highusage_rt,0) grp_scr_ratio,MSISDN,'PDCCH占用高'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-		 UNION
-		 select dt,  nvl(high_conusers_rt,0) grp_scr_ratio,MSISDN,'小区激活用户高'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-			UNION
-		 select dt,  nvl(uepoorphr_rt,0) grp_scr_ratio,MSISDN,'上行功率余量低'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp 
-		UNION
-		 select dt,  nvl(alarm_ind_rt,0) grp_scr_ratio,MSISDN,'告警' GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp 
-		UNION
-		 select dt,  nvl(nalarm_ind_rt,0) grp_scr_ratio,MSISDN,'相关邻区告警'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-		UNION
-		 select dt,  nvl(ul_interfe_ind_rt,0) grp_scr_ratio,MSISDN,'上行干扰'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-		UNION
-		 select dt,  nvl(mod3_interfe_ind_rt,0) grp_scr_ratio,MSISDN,'Mod3干扰'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-		UNION
-		 select dt,  nvl(neigh_problem_ind_rt,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,'0' GRP_SCORE,DENO
-		 from tmp
-			) A where deno >0  ORDER BY grp_scr_ratio desc -->
-			
+
 	  WITH tmp AS (
 	  SELECT
 		${sdate}||'-'||${edate} dt,
@@ -361,7 +268,7 @@
 		 A .grp_name
 		FROM
 			(
-				SELECT dt,NVL (poor_coverage_ind, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,,DENO 
+				SELECT dt,NVL (poor_coverage_ind, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,DENO 
 		FROM tmp
 				UNION
 		 select dt,  nvl(dl_interfe_ind,0) grp_scr_ratio,MSISDN,'下行干扰'  GRP_NAME,DENO
@@ -403,7 +310,7 @@
 		 select dt,  nvl(mod3_interfe_ind,0) grp_scr_ratio,MSISDN,'Mod3干扰'  GRP_NAME,DENO
 		 from tmp
 		UNION
-		 select dt,  nvl(neigh_problem_ind,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,'DENO
+		 select dt,  nvl(neigh_problem_ind,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,DENO
 		 from tmp
 			) A where deno >0  ORDER BY grp_scr_ratio desc
 	</sql>
@@ -452,7 +359,7 @@ WITH tmp AS (
 			0
 		ELSE
 			ROUND (grp_scr_ratio / deno, 4) * 100
-		END grp_scr_ratio,
+		END grp_scr_ratio
 		 FROM
 			(
 				SELECT dt,NVL (poor_coverage_ind, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,DENO 
