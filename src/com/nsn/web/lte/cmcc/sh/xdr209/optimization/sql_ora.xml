@@ -221,11 +221,8 @@
 		SELECT * FROM V_COMPLAIN_PRO_NEW_CONCLUSION WHERE (SEQ,SDATE) IN (SELECT seq,TRUNC(end_time,'hh24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
 	</sql>
 	<sql id="COMP_LOCATE_CATEGPRY" type="ftl">
-		<!-- SELECT SDATE, SEQ, GRP_ID, GRP_NAME, GRP_COUNTS, GRP_SCORE, GRP_SCR_RATIO
-		FROM RPT_COMPLAIN_GRP_STATIC_H
-		WHERE (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
-		ORDER BY RANK_SCR_GRP -->
-    WITH tmp AS (
+	
+<!--     WITH tmp AS (
 	SELECT
 		${sdate}||'-'||${edate} dt,
         sum(poor_coverage_rt) poor_coverage_rt, 
@@ -243,7 +240,7 @@
 	    sum(ul_interfe_ind_rt) ul_interfe_ind_rt, 
 	    sum(mod3_interfe_ind_rt) mod3_interfe_ind_rt,
 	    sum(neigh_problem_ind_rt) neigh_problem_ind_rt,
-	   -- sum(source_flag),
+	    sum(source_flag),
 	    MSISDN,
 	    (
 	      sum(NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
@@ -251,7 +248,7 @@
 		FROM
 			xdr_mr_day_IMSI
 		WHERE
-			<!-- p_day = '${sdate}' -->
+			p_day = '${sdate}'
 			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
 		AND msisdn = '${msisdn}'
 		AND source_flag = '${type}'
@@ -316,33 +313,30 @@
 		UNION
 		 select dt,  nvl(neigh_problem_ind_rt,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,'0' GRP_SCORE,DENO
 		 from tmp
-			) A where deno >0  ORDER BY grp_scr_ratio desc
-	</sql>
-	<sql id="COMP_LOCATE_CATEGPRY_TEXT" type="ftl">
-		
-    WITH tmp AS (
-	SELECT
-			SELECT
+			) A where deno >0  ORDER BY grp_scr_ratio desc -->
+			
+	  WITH tmp AS (
+	  SELECT
 		${sdate}||'-'||${edate} dt,
-        sum(poor_coverage_rt) poor_coverage_rt, 
-	    sum(dl_interfe_rt) dl_interfe_rt,  
-	    sum(ul_poor_sinr_rt) ul_poor_sinr_rt,  
-	    sum(overlap_rt) overlap_rt,  
-	    sum(uepoorphr_rt) uepoorphr_rt, 
-	    sum(cross_rt) cross_rt,  
-	    sum(prb_highusage_rt) prb_highusage_rt, 
-	    sum(prach_highusage_rt) prach_highusage_rt, 
-	    sum(pdcch_highusage_rt) pdcch_highusage_rt, 
-	    sum(high_conusers_rt) high_conusers_rt, 
-	    sum(alarm_ind_rt) alarm_ind_rt, 
-	    sum(nalarm_ind_rt) nalarm_ind_rt, 
-	    sum(ul_interfe_ind_rt) ul_interfe_ind_rt, 
-	    sum(mod3_interfe_ind_rt) mod3_interfe_ind_rt,
-	    sum(neigh_problem_ind_rt) neigh_problem_ind_rt,
-	   -- sum(source_flag),
+        sum(poor_coverage_ind) poor_coverage_ind, 
+	    sum(dl_interfe_ind) dl_interfe_ind,  
+	    sum(ul_poor_sinr_ind) ul_poor_sinr_ind,  
+	    sum(overlap_ind) overlap_ind,  
+	    sum(uepoorphr_ind) uepoorphr_ind, 
+	    sum(cross_ind) cross_ind,  
+	    sum(prb_highusage_ind) prb_highusage_ind, 
+	    sum(prach_highusage_ind) prach_highusage_ind, 
+	    sum(pdcch_highusage_ind) pdcch_highusage_ind, 
+	    sum(high_conusers_ind) high_conusers_ind, 
+	    sum(alarm_ind) alarm_ind, 
+	    sum(nalarm_ind) nalarm_ind, 
+	    sum(ul_interfe_ind) ul_interfe_ind, 
+	    sum(mod3_interfe_ind) mod3_interfe_ind,
+	    sum(neigh_problem_ind) neigh_problem_ind,
+	   <!--  sum(source_flag), -->
 	    MSISDN,
 	    (
-	      sum(NVL (poor_coverage_rt, 0) + NVL (dl_interfe_rt, 0) + NVL (ul_poor_sinr_rt, 0) + NVL (overlap_rt, 0) + NVL (uepoorphr_rt, 0) + NVL (cross_rt, 0) + NVL (prb_highusage_rt, 0) + NVL (prach_highusage_rt, 0) + NVL (pdcch_highusage_rt, 0) + NVL (high_conusers_rt, 0) + NVL (alarm_ind_rt, 0) + NVL (nalarm_ind_rt, 0) + NVL (ul_interfe_ind_rt, 0) + NVL (mod3_interfe_ind_rt, 0) + NVL (neigh_problem_ind_rt, 0)
+	      sum(NVL (poor_coverage_ind, 0) + NVL (dl_interfe_ind, 0) + NVL (ul_poor_sinr_ind, 0) + NVL (overlap_ind, 0) + NVL (uepoorphr_ind, 0) + NVL (cross_ind, 0) + NVL (prb_highusage_ind, 0) + NVL (prach_highusage_ind, 0) + NVL (pdcch_highusage_ind, 0) + NVL (high_conusers_ind, 0) + NVL (alarm_ind, 0) + NVL (nalarm_ind, 0) + NVL (ul_interfe_ind, 0) + NVL (mod3_interfe_ind, 0) + NVL (neigh_problem_ind, 0)
 	    )) deno
 		FROM
 			xdr_mr_day_IMSI
@@ -352,7 +346,7 @@
 		AND msisdn = '${msisdn}'
 		AND source_flag = '${type}'
 		GROUP BY msisdn
-        ) 
+	  ) 
 		SELECT DISTINCT
 			dt SDATE,
 			CASE
@@ -364,53 +358,146 @@
 			ROUND (grp_scr_ratio / deno, 4) * 100
 		END grp_scr_ratio,
 		 A .msisdn,
-		 A .grp_name,
-		 A .grp_score
+		 A .grp_name
 		FROM
 			(
-				SELECT dt,NVL (poor_coverage_rt, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,'0' GRP_SCORE,DENO 
+				SELECT dt,NVL (poor_coverage_ind, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,,DENO 
 		FROM tmp
 				UNION
-		 select dt,  nvl(dl_interfe_rt,0) grp_scr_ratio,MSISDN,'下行干扰'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(dl_interfe_ind,0) grp_scr_ratio,MSISDN,'下行干扰'  GRP_NAME,DENO
 		 from tmp
 		 UNION
-		 select dt,  nvl(ul_poor_sinr_rt,0) grp_scr_ratio,MSISDN,'上行SINR'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(ul_poor_sinr_ind,0) grp_scr_ratio,MSISDN,'上行SINR'  GRP_NAME,DENO
 		from tmp
 		 UNION
-		 select dt,  nvl(overlap_rt,0) grp_scr_ratio,MSISDN,'重叠覆盖'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(overlap_ind,0) grp_scr_ratio,MSISDN,'重叠覆盖'  GRP_NAME,DENO
 		 from tmp 
 		 UNION
-		 select dt,  nvl(cross_rt,0) grp_scr_ratio,MSISDN,'越区覆盖'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(cross_ind,0) grp_scr_ratio,MSISDN,'越区覆盖'  GRP_NAME,DENO
 		 from tmp
 		 UNION
-		 select dt,  nvl(prb_highusage_rt,0) grp_scr_ratio,MSISDN,'PRB占用率过高'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(prb_highusage_ind,0) grp_scr_ratio,MSISDN,'PRB占用率过高'  GRP_NAME,DENO
 		 from tmp 
 		 UNION
-		 select dt,  nvl(prach_highusage_rt,0) grp_scr_ratio,MSISDN,'PRACH占用高'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(prach_highusage_ind,0) grp_scr_ratio,MSISDN,'PRACH占用高'  GRP_NAME,DENO
 		from tmp 
 		 UNION
-		 select dt,  nvl(pdcch_highusage_rt,0) grp_scr_ratio,MSISDN,'PDCCH占用高'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(pdcch_highusage_ind,0) grp_scr_ratio,MSISDN,'PDCCH占用高'  GRP_NAME,DENO
 		 from tmp
 		 UNION
-		 select dt,  nvl(high_conusers_rt,0) grp_scr_ratio,MSISDN,'小区激活用户高'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(high_conusers_ind,0) grp_scr_ratio,MSISDN,'小区激活用户高'  GRP_NAME,DENO
 		 from tmp
 			UNION
-		 select dt,  nvl(uepoorphr_rt,0) grp_scr_ratio,MSISDN,'上行功率余量低'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(uepoorphr_ind,0) grp_scr_ratio,MSISDN,'上行功率余量低'  GRP_NAME,DENO
 		 from tmp 
 		UNION
-		 select dt,  nvl(alarm_ind_rt,0) grp_scr_ratio,MSISDN,'告警' GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(alarm_ind,0) grp_scr_ratio,MSISDN,'告警' GRP_NAME,DENO
 		 from tmp 
 		UNION
-		 select dt,  nvl(nalarm_ind_rt,0) grp_scr_ratio,MSISDN,'相关邻区告警'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(nalarm_ind,0) grp_scr_ratio,MSISDN,'相关邻区告警'  GRP_NAME,DENO
 		 from tmp
 		UNION
-		 select dt,  nvl(ul_interfe_ind_rt,0) grp_scr_ratio,MSISDN,'上行干扰'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(ul_interfe_ind,0) grp_scr_ratio,MSISDN,'上行干扰'  GRP_NAME,DENO
 		 from tmp
 		UNION
-		 select dt,  nvl(mod3_interfe_ind_rt,0) grp_scr_ratio,MSISDN,'Mod3干扰'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(mod3_interfe_ind,0) grp_scr_ratio,MSISDN,'Mod3干扰'  GRP_NAME,DENO
 		 from tmp
 		UNION
-		 select dt,  nvl(neigh_problem_ind_rt,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,'0' GRP_SCORE,DENO
+		 select dt,  nvl(neigh_problem_ind,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,'DENO
+		 from tmp
+			) A where deno >0  ORDER BY grp_scr_ratio desc
+	</sql>
+	<sql id="COMP_LOCATE_CATEGPRY_TEXT" type="ftl">
+		
+WITH tmp AS (
+	  SELECT
+		${sdate}||'-'||${edate} dt,
+        sum(poor_coverage_ind) poor_coverage_ind, 
+	    sum(dl_interfe_ind) dl_interfe_ind,  
+	    sum(ul_poor_sinr_ind) ul_poor_sinr_ind,  
+	    sum(overlap_ind) overlap_ind,  
+	    sum(uepoorphr_ind) uepoorphr_ind, 
+	    sum(cross_ind) cross_ind,  
+	    sum(prb_highusage_ind) prb_highusage_ind, 
+	    sum(prach_highusage_ind) prach_highusage_ind, 
+	    sum(pdcch_highusage_ind) pdcch_highusage_ind, 
+	    sum(high_conusers_ind) high_conusers_ind, 
+	    sum(alarm_ind) alarm_ind, 
+	    sum(nalarm_ind) nalarm_ind, 
+	    sum(ul_interfe_ind) ul_interfe_ind, 
+	    sum(mod3_interfe_ind) mod3_interfe_ind,
+	    sum(neigh_problem_ind) neigh_problem_ind,
+	   <!--  sum(source_flag), -->
+	    MSISDN,
+	    (
+	      sum(NVL (poor_coverage_ind, 0) + NVL (dl_interfe_ind, 0) + NVL (ul_poor_sinr_ind, 0) + NVL (overlap_ind, 0) + NVL (uepoorphr_ind, 0) + NVL (cross_ind, 0) + NVL (prb_highusage_ind, 0) + NVL (prach_highusage_ind, 0) + NVL (pdcch_highusage_ind, 0) + NVL (high_conusers_ind, 0) + NVL (alarm_ind, 0) + NVL (nalarm_ind, 0) + NVL (ul_interfe_ind, 0) + NVL (mod3_interfe_ind, 0) + NVL (neigh_problem_ind, 0)
+	    )) deno
+		FROM
+			xdr_mr_day_IMSI
+		WHERE
+			<!-- p_day = '${sdate}' -->
+			sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
+		AND msisdn = '${msisdn}'
+		<!-- AND source_flag = '${type}' -->
+		GROUP BY msisdn
+	  ) 
+		SELECT DISTINCT
+			dt SDATE,
+			A .msisdn,
+			A .grp_name,
+			CASE
+		WHEN deno IS NULL THEN
+			0
+		WHEN deno = 0 THEN
+			0
+		ELSE
+			ROUND (grp_scr_ratio / deno, 4) * 100
+		END grp_scr_ratio,
+		 FROM
+			(
+				SELECT dt,NVL (poor_coverage_ind, 0) grp_scr_ratio,MSISDN,'弱覆盖' GRP_NAME,DENO 
+		FROM tmp
+				UNION
+		 select dt,  nvl(dl_interfe_ind,0) grp_scr_ratio,MSISDN,'下行干扰'  GRP_NAME,DENO
+		 from tmp
+		 UNION
+		 select dt,  nvl(ul_poor_sinr_ind,0) grp_scr_ratio,MSISDN,'上行SINR'  GRP_NAME,DENO
+		from tmp
+		 UNION
+		 select dt,  nvl(overlap_ind,0) grp_scr_ratio,MSISDN,'重叠覆盖'  GRP_NAME,DENO
+		 from tmp 
+		 UNION
+		 select dt,  nvl(cross_ind,0) grp_scr_ratio,MSISDN,'越区覆盖'  GRP_NAME,DENO
+		 from tmp
+		 UNION
+		 select dt,  nvl(prb_highusage_ind,0) grp_scr_ratio,MSISDN,'PRB占用率过高'  GRP_NAME,DENO
+		 from tmp 
+		 UNION
+		 select dt,  nvl(prach_highusage_ind,0) grp_scr_ratio,MSISDN,'PRACH占用高'  GRP_NAME,DENO
+		from tmp 
+		 UNION
+		 select dt,  nvl(pdcch_highusage_ind,0) grp_scr_ratio,MSISDN,'PDCCH占用高'  GRP_NAME,DENO
+		 from tmp
+		 UNION
+		 select dt,  nvl(high_conusers_ind,0) grp_scr_ratio,MSISDN,'小区激活用户高'  GRP_NAME,DENO
+		 from tmp
+			UNION
+		 select dt,  nvl(uepoorphr_ind,0) grp_scr_ratio,MSISDN,'上行功率余量低'  GRP_NAME,DENO
+		 from tmp 
+		UNION
+		 select dt,  nvl(alarm_ind,0) grp_scr_ratio,MSISDN,'告警' GRP_NAME,DENO
+		 from tmp 
+		UNION
+		 select dt,  nvl(nalarm_ind,0) grp_scr_ratio,MSISDN,'相关邻区告警'  GRP_NAME,DENO
+		 from tmp
+		UNION
+		 select dt,  nvl(ul_interfe_ind,0) grp_scr_ratio,MSISDN,'上行干扰'  GRP_NAME,DENO
+		 from tmp
+		UNION
+		 select dt,  nvl(mod3_interfe_ind,0) grp_scr_ratio,MSISDN,'Mod3干扰'  GRP_NAME,DENO
+		 from tmp
+		UNION
+		 select dt,  nvl(neigh_problem_ind,0) grp_scr_ratio,MSISDN,'邻区问题'  GRP_NAME,DENO
 		 from tmp
 			) A where deno >0  ORDER BY grp_scr_ratio desc
 	</sql>
@@ -425,7 +512,7 @@
 				FROM
 					wxdw_uemr_five
 				where 
-				sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
+				sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
 				<!-- mr_time like '${sdate}%' --> 
 				and msisdn = '${msisdn}'
 				ORDER BY mr_time
@@ -516,7 +603,7 @@
 		AND (a.seq,a.sdate) IN (SELECT seq,trunc(end_time,'hh24') FROM rpt_complaint_imsi_list WHERE seq=${seq})
 		AND a.eci='${eci}'
 		ORDER BY a.entry_time ASC -->
-			SELECT
+<!-- 			SELECT
 				A.RES_DAY,
 				c.cell_name cell_name,
 				A .unusual_count,
@@ -532,7 +619,26 @@
 			WHERE
 				A.msisdn = '${msisdn}'
 			AND a.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
-			order by A.unusual_count desc
+			order by A.unusual_count desc -->
+			SELECT
+				${sdate}||'-'||${edate} RES_DAY,
+				c.cell_name cell_name,
+       
+				sum(A.unusual_count) unusual_count,
+				ROUND((sum(UL_SINR_COUNT*UL_SINR_AVG)/sum(UL_SINR_COUNT))-11,2) usa,
+				ROUND((sum(RSRP_COUNT*RSRP_AVG)/sum(RSRP_COUNT))-140,2) rav,
+				ROUND((sum(RSRQ_COUNT*RSRQ_AVG)/sum(RSRQ_COUNT))*0.5-19.5,2) rsa
+			FROM
+				wxdw_result_day A
+			LEFT JOIN wxdw_uecellmr_day b ON A .RES_DAY = b.MR_DAY
+			AND A.msisdn = b.msisdn
+			AND b.cell_id = A.ecgi
+		     LEFT JOIN TAS_MASTER.CFG_GIS_CELL_INFO c on A.ecgi =c.cell_id
+		     where
+		      A.msisdn = '${msisdn}'
+			 AND a.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
+			 GROUP BY ECGI,a.MSISDN,c.cell_name
+		     order by 3 desc
 	</sql>
 	<!--用户2/4G网络小区某一异常事件详情-->
 	<sql id="USER_24G_ONE_CELL_ABNORMAL_EVENT_DETAIL" type="ftl">
@@ -582,7 +688,7 @@
 	 -->
 	<sql id="LOCATE_XDR_PAGE" type="ftl">
 		<!-- select * from V_COMPLAIN_DW_DETAIL t where (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq})) order by procedure_start_time -->
-			   SELECT
+			   <!-- SELECT
 					p_day,
 					b.cell_name,
 					nvl(xdr_count,0) xdr_count,
@@ -606,10 +712,57 @@
 					xdr_mr_day_ue_ci a LEFT JOIN TAS_MASTER.CFG_GIS_CELL_INFO b
                 on a.CELL_ID = b.CELL_ID
 				WHERE
-					<!-- p_day LIKE '${sdate}' -->
+					p_day LIKE '${sdate}'
 				sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
 				AND msisdn = '${msisdn}'
-				ORDER BY xdr_count desc
+				ORDER BY xdr_count desc -->
+				SELECT
+					p_day,
+					cell_name,
+					xdr_count,
+					ROUND(poor_coverage_ind/total,4)*100  poor_coverage_rt,
+          			ROUND(dl_interfe_ind/total,4)*100 dl_interfe_rt,
+					ROUND(ul_poor_sinr_ind/total,4)*100 ul_poor_sinr_rt,
+					ROUND(overlap_ind/total,4)*100 overlap_rt,
+					ROUND(cross_ind/total,4)*100 cross_rt,
+					ROUND(uepoorphr_ind/total,4)*100 uepoorphr_rt,
+					ROUND(prb_highusage_ind/total,4)*100 prb_highusage_rt,
+					ROUND(prach_highusage_ind/total,4)*100 prach_highusage_rt,
+					ROUND(pdcch_highusage_ind/total,4)*100 pdcch_highusage_rt,
+					ROUND(high_conusers_ind/total,4)*100 high_conusers_rt,
+					ROUND(alarm_ind/total,4)*100 alarm_ind_rt,
+					ROUND(nalarm_ind/total,4)*100 nalarm_ind_rt,
+					ROUND(ul_interfe_ind/total,4)*100 ul_interfe_ind_rt,
+					ROUND(mod3_interfe_ind/total,4)*100 mod3_interfe_ind_rt,
+					ROUND(neigh_problem_ind/total,4)*100 neigh_problem_ind_rt,
+					'' dw
+				FROM
+					(select 
+						p_day,
+						cell_name,
+						nvl(sum(xdr_count),0) as xdr_count,
+						nvl(sum(poor_coverage_ind),0) as poor_coverage_ind,
+						nvl(sum(dl_interfe_ind),0) as dl_interfe_ind,
+						nvl(sum(ul_poor_sinr_ind),0) as ul_poor_sinr_ind,
+						nvl(sum(overlap_ind),0) as overlap_ind,
+						nvl(sum(cross_ind),0) as cross_ind,
+						nvl(sum(uepoorphr_ind),0) as uepoorphr_ind,
+						nvl(sum(prb_highusage_ind),0) as prb_highusage_ind,
+						nvl(sum(prach_highusage_ind),0) as prach_highusage_ind,
+						nvl(sum(pdcch_highusage_ind),0) as pdcch_highusage_ind,
+						nvl(sum(high_conusers_ind),0) as high_conusers_ind,
+						nvl(sum(alarm_ind),0) as alarm_ind,
+						nvl(sum(nalarm_ind),0) as nalarm_ind,
+						nvl(sum(ul_interfe_ind),0) as ul_interfe_ind,
+						nvl(sum(mod3_interfe_ind),0) as mod3_interfe_ind,
+						nvl(sum(neigh_problem_ind),0) as neigh_problem_ind,
+						nvl(sum(poor_coverage_ind),0)+nvl(sum(dl_interfe_ind),0)+nvl(sum(ul_poor_sinr_ind),0)+nvl(sum(overlap_ind),0)+nvl(sum(cross_ind),0)+nvl(sum(uepoorphr_ind),0)+nvl(sum(prb_highusage_ind),0)+nvl(sum(prach_highusage_ind),0)+nvl(sum(pdcch_highusage_ind),0)+nvl(sum(high_conusers_ind),0)+nvl(sum(alarm_ind),0)+nvl(sum(nalarm_ind),0)+nvl(sum(ul_interfe_ind),0)+nvl(sum(mod3_interfe_ind),0)+nvl(sum(neigh_problem_ind),0)+0.000000001 as total
+					from xdr_mr_day_ue_ci a LEFT JOIN TAS_MASTER.CFG_GIS_CELL_INFO b on a.CELL_ID = b.CELL_ID
+					WHERE 
+						sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss') 
+						AND msisdn = '${msisdn}'
+					GROUP BY p_day,cell_name 
+					ORDER BY xdr_count desc)
 	</sql>
 	<sql id="COMP_LOCATE_IMSICELL" type="ftl">
 		SELECT * FROM V_COMPLAIN_POSITION_GIS_IMSI WHERE  latitude > 0  and longitude > 0 AND (SEQ,SDATE) IN (SELECT SEQ,TRUNC(END_TIME,'HH24') FROM RPT_COMPLAINT_IMSI_LIST WHERE SEQ IN (${seq}))
@@ -647,7 +800,7 @@
 		FROM
 			wxdw_uemr_five
 		where 
-		sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
+		sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
 		and msisdn = '${msisdn}'
 		ORDER BY mr_time
 	</sql>
@@ -701,15 +854,62 @@
 			and b.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
 			AND A.MSISDN = '${msisdn}' -->
 			SELECT DISTINCT
-			b.*
+				B.DAYTIME,
+				B.ECI,
+				B.CGI,
+				B.RRC_SUCCCONNESTAB,
+				B.RRC_ATTCONNESTAB,
+				B.ERAB_NBRSUCCESTAB,
+				B.ERAB_NBRATTESTAB,
+				ROUND(B.RADIO_SUCC_RATE,2) RADIO_SUCC_RATE,
+				B.CONTEXT_ATTRELENB,
+				B.CONTEXT_ATTRELENB_NORMAL,
+				B.CONTEXT_ATTINITALSETUP,
+				B.CONTEXT_NBRLEFT,
+				ROUND(B.DROP_RATE,2) DROP_RATE,
+				B.HO_SUCCOUTINTERENBS1,
+				B.HO_SUCCOUTINTERENBX2,
+				B.HO_SUCCOUTINTRAENB,
+				B.HO_ATTOUTINTERENBS1,
+				B.HO_ATTOUTINTERENBX2,
+				B.HO_ATTOUTINTRAENB,
+				B.HO_RATE,
+				B.RRU_PUSCHPRBTOT,
+				B.RRU_PUSCHPRBASSN,
+				B.UL_PRB_RATE,
+				B.RRU_PDSCHPRBTOT,
+				B.RRU_PDSCHPRBASSN,
+				B.DL_PRB_RATE,
+				B.RRU_PDCCHCCEUTIL,
+				B.RRU_PDCCHCCEAVAIL,
+				B.RRU_PDCCHCCEUTILRATIO,
+				B.PDCP_UPOCTUL,
+				B.PDCP_UPOCTDL,
+				B.TRAFFIC,
+				B.RRU_CELLUNAVAILABLETIME,
+				B.RRU_CELLTIME_CAUSEENERGYSAVE,
+				B.RRU_CELLTIME_CAUSES1FAILURE,
+				B.RRC_EFFECTIVECONNMEAN,
+				B.RRC_EFFECTIVECONNMAX,
+				B.RRC_ADMISSIONCONNMEAN,
+				B.RRC_ADMISSIONCONNMAX,
+				B.RRC_CONNRELEASECSFB,
+				B.RRC_CONNRELEASE_REDIRECTTO2G,
+				B.RRC_CONNRELEASE_REDIRECTTO3G,
+				B.PHY_ULMEANNL_PRB_BUSY_SUM,
+				B.PHY_ULMEANNL_PRBWATT_BUSY,
+				B.PHY_ULMEANNL_PRB_SUM,
+				B.PHY_ULMEANNL_PRBWATT_SUM,
+				B.SDATE,
+				B.REPORT_ID                  
 			FROM
 			lte_xdr A
 			LEFT JOIN test_kpi b ON A .CELL_ID = SUBSTR(b.ECI,6)  
 			and TO_CHAR(a.PROCEDURE_START_TIME/(1000 * 60 * 60 * 24) +TO_DATE('1970-01-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24')
 			=substr(b.daytime,1,13)
 			WHERE
-			A.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
-			and b.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${sdate}'||'235959','yyyymmddhh24miss')
+			A.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
+			and b.sdate BETWEEN to_date('${sdate}'||'000000','yyyymmddhh24miss') and to_date('${edate}'||'235959','yyyymmddhh24miss')
 			AND A.MSISDN = '${msisdn}' 
          
 	</sql>

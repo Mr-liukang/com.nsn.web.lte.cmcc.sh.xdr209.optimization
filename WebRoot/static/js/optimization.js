@@ -77,7 +77,7 @@ $(function () {
                 locateUser24GAbnormalCellTravel();
                 if(localclick == 0 ){
                 
-                locateCategoryTableNew('1');
+                locateCategoryTableNew('0');
                 locateUser24GViewLineNew();
                 locateXdrDetailNew();
                 locateUser24GCellAbnormalEventNew();
@@ -130,7 +130,7 @@ $(function () {
     });
 
     //导出
-    $(".btn-export").click(function () {
+/*    $(".btn-export").click(function () {
         var key = $(this).attr("key");
         var name = $(this).attr("name");
         if (fmtNull(currentSeq) == "-") {
@@ -152,7 +152,7 @@ $(function () {
         } else {
             $page.expview.exportData(currentSeq, key, name,currentSdate,currentEdate);
         }
-    });
+    });*/
 
     $("#scell").click(function () {
         var checked = $(this).is(":checked");
@@ -2016,7 +2016,7 @@ function query(type) {
        // var sdate = $("#sdate").val();
        // var curTime = new Date($("#sdate").val());
         var sdate = getMyDate($("#sdate").val());
-        var edate = $("#sdate").val().replace(/-/g, "");;
+        var edate = $("#sdate").val().replace(/-/g, "");
         var stime = $("#timeVars").val();
         if (imsi.length == 0) {
             layer.alert("请输入正确的手机号或IMSI");
@@ -2044,7 +2044,7 @@ function query(type) {
         abnormalEventsNew(imsi,sdate,edate);
         specificOutputNew('http');
         //投诉定位
-        locateCategoryTableNew('1');
+        locateCategoryTableNew('0');
         locateUser24GViewLineNew();
         locateXdrDetailNew();
         locateUser24GCellAbnormalEventNew();
@@ -2067,16 +2067,27 @@ function query(type) {
         $page.orderView.queryOrderNoPage();
     }
 }
+$(".btn-export").click(function () {
+	var imsi = $("#imsival").val().replace(/\s+/g, "");
+    var sdate = getMyDate($("#sdate").val());
+     var edate = $("#sdate").val().replace(/-/g, "");
+     exportData(imsi,"test",sdate,edate);
+});
+function exportData(msisdn, name,sdate,edate) {
+    
+    N.Util.download("/optimization/mainAction/exportExcel", {"msisdn": msisdn, "fileName": name,"sdate":sdate,"edate":edate});
+}
 /**
  * 具体输出
  */
 function specificOutputNew(tab) {
 	// console.log(tab);
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val();
-  
+     //var sdate = $("#sdate").val();
+     var edate = $("#sdate").val();
+     var sdate = getMyDateForHbase($("#sdate").val());
     
-    $.post("/optimization/mainAction/specificOutput", {"imsi": imsi,"sdate":sdate,"type":tab}, function (result) {
+    $.post("/optimization/mainAction/specificOutput", {"imsi": imsi,"sdate":sdate,"edate":edate,"type":tab}, function (result) {
        var columns = [];
        /*
         if(result==null || result.length<1){
@@ -2292,8 +2303,10 @@ function specificOutputNew(tab) {
 //投诉用户UEMR详单（表格）
  function complainUserUemrDetailNew() {
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val();
-     $.post("/optimization/mainAction/complainUserUemrDetail", {"msisdn":imsi,"sdate":sdate}, function (res) {
+     //var sdate = $("#sdate").val();
+     var edate = $("#sdate").val();
+     var sdate = getMyDateForHbase($("#sdate").val());
+     $.post("/optimization/mainAction/complainUserUemrDetail", {"msisdn":imsi,"sdate":sdate,"edate":edate}, function (res) {
     	 $('#data_ana_uemr').DataTable({
              "destroy": true,
              "processing": false,
@@ -2355,9 +2368,13 @@ function specificOutputNew(tab) {
  */
 function diagnosticDelimitationNew() {
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val();
-     var edate = sdate+' 23:59:59';
-     sdate = sdate+' 00:00:00';
+     //var sdate = $("#sdate").val();
+     
+    // var edate = sdate+' 23:59:59';
+    // sdate = sdate+' 00:00:00';
+     
+     var edate = $("#sdate").val()+' 23:59:59';
+     var sdate = getMyDateForHbase($("#sdate").val())+' 00:00:00';
      
 	 $("#detail-info-panel").show();
      $.post("http://10.243.165.93:9080/css/customer/secondline", 
@@ -2437,30 +2454,50 @@ function diagnosticDelimitationNew() {
             
         ]
     });
-    locationCategoryPie(imsi,sdate,cate);
+    locationCategoryPie(imsi,sdate,edate,cate);
+    if(cate == 0){
     diagnosisLocationMainCauseNew(imsi,sdate,edate,cate);
+    }
 }
  /**
   * 定位分析
   */
- function diagnosisLocationMainCauseNew(msisdn,sdate,type){
+ function diagnosisLocationMainCauseNew(msisdn,sdate,edate,type){
      $("#locate_main_cause").html(loader);
      $.post("/optimization/mainAction/diagnosisLocationMainCause", {"msisdn":msisdn,"sdate":sdate,"edate":edate,"type":type}, function (res) {
          var main_cause = res.data;
-       //  console.log(res);
+         console.log(res);
         // console.log(main_cause);
         // console.log(main_cause.grp_name);
         // console.log(res.length);
+        
          $("#locate_main_cause").text("未查询到此用户存在异常记录");
          if(main_cause){
-             $("#locate_main_cause").text(main_cause.grp_name);
+        	 var result = '';
+        	 var sum = 0;
+        	 $.each(main_cause,function(n,value) {   
+                // alert(n+' '+value);  
+        		 
+        		 
+                 if(n<3){
+                	 sum += value.grp_scr_ratio;
+                	if(sum<90){
+                		result +=value.grp_name+' ';
+                	}else{
+                		result +=value.grp_name+' ';
+                	 return false; 
+                		
+                	} 
+                  }         
+                 })
+             $("#locate_main_cause").text(result);
          }
       });
  }
  //定位分类-饼图
- function locationCategoryPie(msisdn,sdate,type){
+ function locationCategoryPie(msisdn,sdate,edate,type){
      $("#chart14").html(loader);
-     $.post("/optimization/mainAction/locationCategoryPie", {"msisdn":msisdn,"sdate":sdate,"type":type}, function (res) {
+     $.post("/optimization/mainAction/locationCategoryPie", {"msisdn":msisdn,"sdate":sdate,"edate":edate,"type":type}, function (res) {
          var locate_category = res.data;
          var piedata = [];
          if (locate_category && locate_category.length > 0) {
@@ -2479,9 +2516,11 @@ function diagnosticDelimitationNew() {
  function locateUser24GViewLineNew(){
      $("#detail-info-panel").show();
      var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val().replace(/-/g, "");
+    // var sdate = $("#sdate").val().replace(/-/g, "");
+     var edate = $("#sdate").val().replace(/-/g, "");
+     var sdate = getMyDate($("#sdate").val());
    //  $("#chart14_1").html(loader);
-     $.post("/optimization/mainAction/locateUser24GViewLine", {"msisdn": imsi,"sdate":sdate}, function (res, status, xhr) {
+     $.post("/optimization/mainAction/locateUser24GViewLine", {"msisdn": imsi,"sdate":sdate,"edate":edate}, function (res, status, xhr) {
          var cates = [];
          var ts0 = [], ts1 = [], ts2 = [];
         // console.log(res);
@@ -2616,9 +2655,12 @@ function locateUser24GCellAbnormalEventNew(){
 //异常事件定位详情
   function locateXdrDetailNew() { //
 	  var imsi = $("#imsival").val().replace(/\s+/g, "");
-	     var sdate = $("#sdate").val().replace(/-/g, "");
+	    // var sdate = $("#sdate").val().replace(/-/g, "");
+	     var edate = $("#sdate").val().replace(/-/g, "");
+	     var sdate = getMyDate($("#sdate").val())
+	    
 	   //  console.log(sdate);
-     $.post("/optimization/mainAction/locateXdrDetail", {"msisdn": imsi,"sdate":sdate}, function (result, status, xhr) {
+     $.post("/optimization/mainAction/locateXdrDetail", {"msisdn": imsi,"sdate":sdate,"edate":edate}, function (result, status, xhr) {
          var columns = [];
          var titleCol=["弱覆盖","下行干扰","上行SINR","重叠覆盖",
         	          "越区覆盖","上行功率余量低","PRB占用率过高","PRACH占用高",
@@ -2697,9 +2739,11 @@ function locateUser24GCellAbnormalEventNew(){
   //投诉用户UEMR分布（走势图）
   function complainUserUemrLineNew() {
 	  var imsi = $("#imsival").val().replace(/\s+/g, "");
-	     var sdate = $("#sdate").val().replace(/-/g, "");
+	   //  var sdate = $("#sdate").val().replace(/-/g, "");
+	     var edate = $("#sdate").val().replace(/-/g, "");
+	     var sdate = getMyDate($("#sdate").val())
      // $('#chart17').html(loader);
-      $.post("/optimization/mainAction/complainUserUemrLine", {"msisdn":imsi ,"sdate":sdate}, function (res, status, xhr) {
+      $.post("/optimization/mainAction/complainUserUemrLine", {"msisdn":imsi ,"sdate":sdate,"edate":edate}, function (res, status, xhr) {
           if (status != 'success') {
               layer.alert("UEMR表不存在");
               return;
@@ -2853,7 +2897,9 @@ function locateUser24GCellAbnormalEventNew(){
  function passCellOmcIndexNew() {
     //  $('#data_ana_omc tbody').html("<tr><td colspan='5'>"+loader+"</td>");
 	 var imsi = $("#imsival").val().replace(/\s+/g, "");
-     var sdate = $("#sdate").val().replace(/-/g, "");
+    // var sdate = $("#sdate").val().replace(/-/g, "");
+     var edate = $("#sdate").val().replace(/-/g, "");
+     var sdate = getMyDate($("#sdate").val())
      $('#data_ana_omc').DataTable({
          "destroy": true,
          "processing": false,
@@ -2866,7 +2912,7 @@ function locateUser24GCellAbnormalEventNew(){
              "url": "/optimization/mainAction/passCellOmcIndex",
              "type":"post",
              "data": function (d) {
-                 return $.extend({}, d, {"msisdn":imsi ,"sdate":sdate});
+                 return $.extend({}, d, {"msisdn":imsi ,"sdate":sdate,"edate":edate});
              },
              "error": function (xhr, textStatus, error) {
                  console.log(error);
@@ -3041,6 +3087,20 @@ function getMyDate(curTime){
    oMin = oDate.getMinutes(),  
    oSen = oDate.getSeconds(),  
    oTime = oYear +''+ getzf(oMonth) +''+ getzf(oDay)+'' ;//最后拼接时间  
+   return oTime;  
+} 
+function getMyDateForHbase(curTime){  
+	console.log(curTime);
+	var curTimeDate = new Date(curTime);
+	var str = curTimeDate.setDate(curTimeDate.getDate()-2) ;
+   var oDate = new Date(str),  
+   oYear = oDate.getFullYear(),  
+   oMonth = oDate.getMonth()+1,  
+   oDay = oDate.getDate(),  
+   oHour = oDate.getHours(),  
+   oMin = oDate.getMinutes(),  
+   oSen = oDate.getSeconds(),  
+   oTime = oYear +'-'+ getzf(oMonth) +'-'+ getzf(oDay)+'' ;//最后拼接时间  
    return oTime;  
 } 
 //补0操作
@@ -3305,6 +3365,7 @@ function initLines(htmlId, title, cates, series, interval, toolShare, yAxisArr, 
             },
             labels: {
                 rotation: xRotation,
+                rotation: 30, //倾斜的角度
                 formatter: function () {
                     var v = this.value;
                     return xIsformat?v.substring(5, v.length):v;

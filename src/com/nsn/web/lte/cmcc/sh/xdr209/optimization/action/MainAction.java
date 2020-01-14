@@ -71,7 +71,7 @@ public class MainAction {
 	 * @param rc
 	 */
 	public void exportExcel(ReqContext rc) {
-		String seq = rc.param("seq");
+/*		String seq = rc.param("seq");
 		Integer key = rc.paramToInt("key");
 		List<Record> exportList = new ArrayList<Record>();
 		switch (key) {
@@ -162,7 +162,9 @@ public class MainAction {
 				break;
 			default:
 				break;
-		}
+		}*/
+		List<Record> exportList = new ArrayList<Record>();
+		exportList = Db.use().query(SqlMap.get("COMP_LOCATE_CATEGPRY_TEXT").parse(rc.params()));
 		PageAction pageAction = new PageAction();
 		pageAction.exportList(rc, exportList);
 	}
@@ -857,14 +859,15 @@ public class MainAction {
 	public List specificOutput(ReqContext rc) {
 		String imsi = rc.param("imsi");
 		String sdate = rc.param("sdate");
+		String edate = rc.param("edate");
 		String type= rc.param("type");
 		System.out.println("type "+type);
 		DateFromHbase dfh = new DateFromHbase();
 		List<Map<String,Object>> httpSpecDetail =  new ArrayList();
 		if("http".equals(type)) {
-		 httpSpecDetail = dfh.getHttpSpecDetail(sdate, imsi,"rpt_cus_ser_http_spec_detail");
+		 httpSpecDetail = dfh.getHttpSpecDetail(sdate, edate,imsi,"rpt_cus_ser_http_spec_detail");
 		}else {
-		 httpSpecDetail = dfh.getS1mmSpecDetail(sdate, imsi,"rpt_cus_ser_signaling_detail");
+		 httpSpecDetail = dfh.getS1mmSpecDetail(sdate, edate,imsi,"rpt_cus_ser_signaling_detail");
 		}
 		/*long startTime = new Date().getTime();
 		List<Record> output = null;
@@ -893,10 +896,11 @@ public class MainAction {
 			params.put("sdate", sd);
 			params.put("msisdn",msisdn);
 			params.put("type", type);*/
-		Record mainCause = null;
+		List<Record> mainCause = null;
 		try{
+			Page<?> pageParam = rc.page();
 			//mainCause = Db.read(SqlMap.get("COMP_LOCATE_MAINCAUSE").parse(rc.params()));
-		mainCause = Db.read(SqlMap.get("COMP_LOCATE_CATEGPRY_TEXT").parse(params));
+		mainCause = Db.query(SqlMap.get("COMP_LOCATE_CATEGPRY_TEXT").parse(params));
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -930,20 +934,25 @@ public class MainAction {
 	//定位分类-表格
 	public Page<Record> locateCategoryTable(ReqContext rc) {
 		long startTime = new Date().getTime();
-      /*  Map<String, Object> params = rc.params();
-		String sdate = rc.param("sdate");
+        Map<String, Object> params = rc.params();
+        /*String sdate = rc.param("sdate");
 		String msisdn = rc.param("msisdn");
-		String type = rc.param("type");
+		
 		String sd = sdate.replaceAll("-", "");
 	//	System.out.println("异常事件 时间 sd "+sd);
 		params.put("sdate", sd);
 		params.put("msisdn",msisdn);
 		params.put("type", type);*/
+        String type = rc.param("type");
 		Page<Record> data = null;
 		try{
 			Page<?> pageParam = rc.page();
-			Map<String, Object> params = rc.params();
+			//Map<String, Object> params = rc.params();
+			if("0".equals(type)) {
+			data =  Db.page(SqlMap.get("COMP_LOCATE_CATEGPRY_TEXT").parse(params), pageParam);
+			}else {
 			data =  Db.page(SqlMap.get("COMP_LOCATE_CATEGPRY").parse(params), pageParam);
+			}
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -980,7 +989,11 @@ public class MainAction {
 			params.put("type", type);
 		List<Record> category = null;
 		try{
+			if("0".equals(type)) {
+				category = Db.query(SqlMap.get("COMP_LOCATE_CATEGPRY_TEXT").parse(params));
+			}else {
 			category = Db.query(SqlMap.get("COMP_LOCATE_CATEGPRY").parse(params));
+			}
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -1254,6 +1267,7 @@ public class MainAction {
 	public List complainUserUemrDetail(ReqContext rc) {
 		long startTime = new Date().getTime();
 		String sdate = rc.param("sdate");
+		String edate = rc.param("edate");
 		String msisdn = rc.param("msisdn");
 		System.out.println("complainUserUemrDetail==========");
 		
@@ -1269,8 +1283,8 @@ public class MainAction {
 			e.printStackTrace();
 		}*/
 		DateFromHbase df = new DateFromHbase();
-		List<Map<String,Object>> data = df.getDataFromHbaseDetail(sdate, msisdn, "lte_wxdw_xdrmr_hour", 0);
-		System.out.println(data.toString());
+		List<Map<String,Object>> data = df.getDataFromHbaseDetail(sdate,edate,msisdn, "lte_wxdw_xdrmr_hour", 0);
+		//System.out.println(data.toString());
 		String cellIdString = "";
 		
 		int dataSize = data.size();
@@ -1307,7 +1321,7 @@ public class MainAction {
 	         }
 		}
 		
-		System.out.println("改变后的data "+data.toString());
+		//System.out.println("改变后的data "+data.toString());
 		long endTime = new Date().getTime();
 		log.info("Method complainUserUemrDetail() 数据分析-->投诉用户UEMR详单（表格） execution time:"+(endTime - startTime)+"ms");
 		return data;
